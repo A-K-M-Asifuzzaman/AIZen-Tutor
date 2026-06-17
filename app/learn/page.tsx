@@ -1,27 +1,36 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { gsap } from "gsap"
+import Link from "next/link"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
 import {
   getCompleted, markComplete, getXP, getLevel, getLevelProgress,
-  getNextLevel, getStreak, getEarnedBadges, getCategoryProgress, BADGES, XP_PER_LESSON
+  getNextLevel, getStreak, getEarnedBadges, getCategoryProgress,
+  getBookmarks, toggleBookmark, getNote, BADGES, XP_PER_LESSON,
+  type QuizResult,
 } from "@/lib/progress"
 import LearnSidebar from "@/components/LearnSidebar"
 import LessonView from "@/components/LessonView"
+import QuizModal from "@/components/QuizModal"
+import NotesPanel from "@/components/NotesPanel"
 
 export default function LearnPage() {
   const [activeLessonId, setActiveLessonId] = useState(LESSONS[0].id)
   const [completed, setCompleted]           = useState<string[]>([])
+  const [bookmarks, setBookmarks]           = useState<string[]>([])
   const [streak, setStreak]                 = useState(0)
-  const [xpToast, setXpToast]               = useState<{ show: boolean; xp: number }>({ show: false, xp: 0 })
+  const [xpToast, setXpToast]               = useState<{ show: boolean; xp: number; label?: string }>({ show: false, xp: 0 })
   const [sidebarOpen, setSidebarOpen]       = useState(false)
   const [isMobile, setIsMobile]             = useState(false)
   const [search, setSearch]                 = useState("")
   const [justLeveledUp, setJustLeveledUp]   = useState(false)
+  const [showQuiz, setShowQuiz]             = useState(false)
+  const [showNotes, setShowNotes]           = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setCompleted(getCompleted())
+    setBookmarks(getBookmarks())
     setStreak(getStreak())
     const check = () => {
       const m = window.innerWidth < 768
@@ -33,8 +42,9 @@ export default function LearnPage() {
     return () => window.removeEventListener("resize", check)
   }, [])
 
-  // Smooth lesson transition
+  // Close notes when switching lessons
   useEffect(() => {
+    setShowNotes(false)
     if (!contentRef.current) return
     gsap.fromTo(contentRef.current,
       { opacity: 0, y: 12 },
@@ -53,6 +63,7 @@ export default function LearnPage() {
   const prevLesson   = activeIndex > 0 ? LESSONS[activeIndex - 1] : null
   const nextLesson   = activeIndex < LESSONS.length - 1 ? LESSONS[activeIndex + 1] : null
   const isCompleted  = completed.includes(activeLessonId)
+  const isBookmarked = bookmarks.includes(activeLessonId)
 
   const handleSelectLesson = useCallback((id: string) => {
     setActiveLessonId(id)
@@ -61,20 +72,37 @@ export default function LearnPage() {
   }, [isMobile])
 
   const handleComplete = useCallback(() => {
-    const prevXP = getXP(completed)
+    const prevXP    = getXP(completed)
     const prevLevel = getLevel(prevXP).name
     const { completed: updated, isNew } = markComplete(activeLessonId)
     if (!isNew) return
     setCompleted(updated)
-    const newXP = getXP(updated)
+    const newXP    = getXP(updated)
     const newLevel = getLevel(newXP).name
-    setXpToast({ show: true, xp: XP_PER_LESSON })
-    setTimeout(() => setXpToast({ show: false, xp: 0 }), 2500)
+    setXpToast({ show: true, xp: XP_PER_LESSON, label: "Lesson Complete!" })
+    setTimeout(() => setXpToast({ show: false, xp: 0 }), 2400)
     if (newLevel !== prevLevel) {
       setJustLeveledUp(true)
       setTimeout(() => setJustLeveledUp(false), 3200)
     }
+    // Open quiz after short delay
+    setTimeout(() => setShowQuiz(true), 600)
   }, [activeLessonId, completed])
+
+  const handleToggleBookmark = useCallback(() => {
+    const nowBookmarked = toggleBookmark(activeLessonId)
+    setBookmarks(getBookmarks())
+  }, [activeLessonId])
+
+  const handleQuizClose = useCallback((result: QuizResult | null) => {
+    setShowQuiz(false)
+    if (result && result.bonusXP > 0) {
+      setTimeout(() => {
+        setXpToast({ show: true, xp: result.bonusXP, label: `Quiz Bonus!` })
+        setTimeout(() => setXpToast({ show: false, xp: 0 }), 2400)
+      }, 300)
+    }
+  }, [])
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg)" }}>
@@ -97,11 +125,11 @@ export default function LearnPage() {
         {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b"
           style={{ borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
               style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
             <span className="font-semibold text-white text-sm">AIZen Tutor</span>
-          </div>
+          </Link>
           {isMobile && (
             <button onClick={() => setSidebarOpen(false)} className="text-zinc-500 hover:text-white p-1 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -164,12 +192,13 @@ export default function LearnPage() {
           <LearnSidebar
             activeLessonId={activeLessonId}
             completed={completed}
+            bookmarks={bookmarks}
             onSelect={handleSelectLesson}
             search={search}
           />
         </div>
 
-        {/* Progress footer */}
+        {/* Footer */}
         <div className="shrink-0 px-4 py-3 border-t" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-zinc-600">Progress</span>
@@ -179,14 +208,37 @@ export default function LearnPage() {
             <div className="h-full rounded-full bg-violet-600 transition-all duration-700"
               style={{ width: `${Math.round((completed.length / LESSONS.length) * 100)}%` }} />
           </div>
+          <Link href="/"
+            className="mt-3 flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-300 transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Home
+          </Link>
+          <Link href="/dashboard"
+            className="mt-2 flex items-center gap-1.5 text-xs text-zinc-600 hover:text-violet-400 transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            View Dashboard
+          </Link>
         </div>
       </aside>
 
-      {/* ─── Main ─── */}
+      {/* ─── Main content area ─── */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
         {/* Topbar */}
         <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b z-10"
           style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+
+          <Link href="/"
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+            title="Home">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </Link>
 
           <button onClick={() => setSidebarOpen((v) => !v)}
             className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all">
@@ -215,6 +267,27 @@ export default function LearnPage() {
             <span className="text-orange-400 font-semibold">{streak}</span>
           </div>
 
+          {/* Notes toggle */}
+          <button onClick={() => setShowNotes((v) => !v)}
+            title="Toggle notes"
+            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${showNotes ? "text-violet-400" : "text-zinc-500 hover:text-white hover:bg-white/5"}`}
+            style={showNotes ? { background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.25)" } : {}}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+
+          {/* Quiz button (if lesson completed) */}
+          {isCompleted && (
+            <button onClick={() => setShowQuiz(true)}
+              title="Retake quiz"
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-violet-400 hover:bg-white/5 transition-all">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </button>
+          )}
+
           <div className="shrink-0 flex items-center gap-2">
             <span className="text-xs text-zinc-600 hidden sm:inline">{activeIndex + 1}/{LESSONS.length}</span>
             <div className="w-12 sm:w-20 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
@@ -224,21 +297,62 @@ export default function LearnPage() {
           </div>
         </header>
 
-        {/* Lesson content */}
-        <main className="flex-1 overflow-y-auto">
-          <div ref={contentRef}>
-            {activeLesson && (
-              <LessonView
-                lesson={activeLesson}
-                isCompleted={isCompleted}
-                onComplete={handleComplete}
-                onPrev={prevLesson ? () => setActiveLessonId(prevLesson.id) : undefined}
-                onNext={nextLesson ? () => setActiveLessonId(nextLesson.id) : undefined}
+        {/* Content + Notes panel */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Lesson content */}
+          <main className="flex-1 overflow-y-auto min-w-0">
+            <div ref={contentRef}>
+              {activeLesson && (
+                <LessonView
+                  lesson={activeLesson}
+                  isCompleted={isCompleted}
+                  isBookmarked={isBookmarked}
+                  onComplete={handleComplete}
+                  onToggleBookmark={handleToggleBookmark}
+                  onPrev={prevLesson ? () => setActiveLessonId(prevLesson.id) : undefined}
+                  onNext={nextLesson ? () => setActiveLessonId(nextLesson.id) : undefined}
+                />
+              )}
+            </div>
+          </main>
+
+          {/* Notes panel */}
+          {showNotes && activeLesson && (
+            <aside className="shrink-0 w-64 sm:w-72 hidden sm:flex flex-col overflow-hidden">
+              <NotesPanel
+                lessonId={activeLessonId}
+                lessonTitle={activeLesson.title}
+                onClose={() => setShowNotes(false)}
               />
-            )}
-          </div>
-        </main>
+            </aside>
+          )}
+        </div>
       </div>
+
+      {/* ─── Quiz Modal ─── */}
+      {showQuiz && activeLesson && (
+        <QuizModal
+          lessonId={activeLessonId}
+          lessonTitle={activeLesson.title}
+          onClose={handleQuizClose}
+        />
+      )}
+
+      {/* ─── Mobile Notes (bottom sheet) ─── */}
+      {showNotes && isMobile && activeLesson && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: "rgba(0,0,0,0.65)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowNotes(false) }}>
+          <div className="h-96 rounded-t-2xl overflow-hidden flex flex-col"
+            style={{ background: "var(--surface)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <NotesPanel
+              lessonId={activeLessonId}
+              lessonTitle={activeLesson.title}
+              onClose={() => setShowNotes(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* ─── XP Toast ─── */}
       {xpToast.show && (
@@ -246,7 +360,7 @@ export default function LearnPage() {
           <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
             style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 8px 32px rgba(124,58,237,0.35)" }}>
             <span>⚡</span>
-            <span className="text-white">+{xpToast.xp} XP Earned!</span>
+            <span className="text-white">+{xpToast.xp} XP{xpToast.label ? ` — ${xpToast.label}` : ""}</span>
           </div>
         </div>
       )}

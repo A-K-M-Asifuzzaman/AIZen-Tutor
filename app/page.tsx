@@ -7,11 +7,11 @@ import { LESSONS, CATEGORIES } from "@/data/curriculum"
 
 const FEATURES = [
   { icon: "🧠", title: "62 In-Depth Lessons",   desc: "From linear regression to diffusion models — every concept explained with code." },
-  { icon: "⚡", title: "XP & Level System",      desc: "Earn 100 XP per lesson. Level up from Newcomer to Master. Track real progress." },
+  { icon: "⚡", title: "XP & Level System",      desc: "Earn 100 XP per lesson + bonus XP from quizzes. Level up from Newcomer to Master." },
   { icon: "🔥", title: "Daily Streaks",          desc: "Build a consistent habit. Streak tracking keeps you accountable every day." },
-  { icon: "🏆", title: "8 Achievement Badges",  desc: "Complete every lesson in a category to earn an expert badge. 8 total to unlock." },
+  { icon: "📝", title: "Quizzes + Notes",        desc: "3 MCQs per lesson with explanations and bonus XP. Add personal notes to any lesson." },
   { icon: "💻", title: "Real Python Code",       desc: "Every concept backed by runnable, production-quality Python with one-click copy." },
-  { icon: "🎤", title: "Interview Prep",         desc: "FAANG-level ML system design walkthroughs and Q&A — ready for the real thing." },
+  { icon: "📊", title: "Progress Dashboard",     desc: "Activity heatmap, category rings, quiz stats, bookmarks — see your full journey." },
 ]
 
 const CAT_COLOR: Record<string, string> = {
@@ -125,6 +125,10 @@ export default function LandingPage() {
           <Link href="/learn"
             className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
             Curriculum
+          </Link>
+          <Link href="/dashboard"
+            className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
+            Dashboard
           </Link>
           <Link href="/learn"
             className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-90 active:scale-95"

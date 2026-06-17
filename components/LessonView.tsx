@@ -5,7 +5,9 @@ import type { Lesson } from "@/data/curriculum"
 interface Props {
   lesson: Lesson
   isCompleted: boolean
+  isBookmarked: boolean
   onComplete: () => void
+  onToggleBookmark: () => void
   onPrev?: () => void
   onNext?: () => void
 }
@@ -32,7 +34,7 @@ const READ_TIME: Record<string, string> = {
   "Interview Prep":     "15 min",
 }
 
-export default function LessonView({ lesson, isCompleted, onComplete, onPrev, onNext }: Props) {
+export default function LessonView({ lesson, isCompleted, isBookmarked, onComplete, onToggleBookmark, onPrev, onNext }: Props) {
   const diff     = DIFFICULTY[lesson.category] ?? { label: "Intermediate", color: "#fbbf24" }
   const readTime = READ_TIME[lesson.category] ?? "10 min"
 
@@ -56,7 +58,21 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
             </svg>
             {readTime} read
           </span>
-          <span className="ml-auto text-xs font-semibold text-violet-400">⚡ +100 XP</span>
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={onToggleBookmark}
+              title={isBookmarked ? "Remove bookmark" : "Bookmark this lesson"}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              style={{
+                background: isBookmarked ? "rgba(251,191,36,0.12)" : "rgba(255,255,255,0.04)",
+                border: isBookmarked ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                color: isBookmarked ? "#fbbf24" : "#52525b",
+              }}>
+              <svg className="w-3.5 h-3.5" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
+            <span className="text-xs font-semibold text-violet-400">⚡ +100 XP</span>
+          </div>
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-5">
