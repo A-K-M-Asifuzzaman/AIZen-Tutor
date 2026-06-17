@@ -1,25 +1,28 @@
 "use client"
+import { useEffect } from "react"
 import Link from "next/link"
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
 
 const FEATURES = [
-  { icon: "🧠", title: "62 In-Depth Lessons",    desc: "From linear regression to diffusion models — every concept explained with code.", color: "#8b5cf6", glow: "rgba(139,92,246,0.22)" },
-  { icon: "⚡", title: "XP & Level System",       desc: "Earn 100 XP per lesson. Level from Newcomer to Master. Real gamified progress.", color: "#22d3ee", glow: "rgba(34,211,238,0.22)" },
-  { icon: "🔥", title: "Daily Streaks",           desc: "Build a habit with daily streaks. Consistency is the real skill in ML.",          color: "#f97316", glow: "rgba(249,115,22,0.22)" },
-  { icon: "🏆", title: "8 Achievement Badges",   desc: "Complete every lesson in a category to earn an expert badge — 8 to collect.",     color: "#fbbf24", glow: "rgba(251,191,36,0.22)" },
-  { icon: "💻", title: "Real Python Code",        desc: "Every concept backed by runnable, production-quality Python with one-click copy.", color: "#34d399", glow: "rgba(52,211,153,0.22)" },
-  { icon: "🎤", title: "Interview Prep",          desc: "FAANG-level ML system design walkthroughs and Q&A — ready for the real thing.",   color: "#ec4899", glow: "rgba(236,72,153,0.22)" },
+  { icon: "🧠", title: "62 In-Depth Lessons",   desc: "From linear regression to diffusion models — every concept explained with code." },
+  { icon: "⚡", title: "XP & Level System",      desc: "Earn 100 XP per lesson. Level up from Newcomer to Master. Track real progress." },
+  { icon: "🔥", title: "Daily Streaks",          desc: "Build a consistent habit. Streak tracking keeps you accountable every day." },
+  { icon: "🏆", title: "8 Achievement Badges",  desc: "Complete every lesson in a category to earn an expert badge. 8 total to unlock." },
+  { icon: "💻", title: "Real Python Code",       desc: "Every concept backed by runnable, production-quality Python with one-click copy." },
+  { icon: "🎤", title: "Interview Prep",         desc: "FAANG-level ML system design walkthroughs and Q&A — ready for the real thing." },
 ]
 
-const CAT_META: Record<string, { color: string; bg: string; border: string; glow: string }> = {
-  "Machine Learning":   { color: "#a78bfa", bg: "rgba(139,92,246,0.1)",  border: "rgba(139,92,246,0.3)",  glow: "rgba(139,92,246,0.25)" },
-  "Deep Learning":      { color: "#60a5fa", bg: "rgba(59,130,246,0.1)",  border: "rgba(59,130,246,0.3)",  glow: "rgba(59,130,246,0.25)" },
-  "NLP & Transformers": { color: "#22d3ee", bg: "rgba(34,211,238,0.1)",  border: "rgba(34,211,238,0.3)",  glow: "rgba(34,211,238,0.25)" },
-  "LLMs & Prompting":   { color: "#34d399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.3)",  glow: "rgba(52,211,153,0.25)" },
-  "RAG Systems":        { color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.3)",  glow: "rgba(251,191,36,0.25)" },
-  "Computer Vision":    { color: "#f472b6", bg: "rgba(244,114,182,0.1)", border: "rgba(244,114,182,0.3)", glow: "rgba(244,114,182,0.25)" },
-  "MLOps":              { color: "#fb923c", bg: "rgba(251,146,60,0.1)",  border: "rgba(251,146,60,0.3)",  glow: "rgba(251,146,60,0.25)" },
-  "Interview Prep":     { color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.3)", glow: "rgba(248,113,113,0.25)" },
+const CAT_COLOR: Record<string, string> = {
+  "Machine Learning":   "#a78bfa",
+  "Deep Learning":      "#60a5fa",
+  "NLP & Transformers": "#22d3ee",
+  "LLMs & Prompting":   "#34d399",
+  "RAG Systems":        "#fbbf24",
+  "Computer Vision":    "#f472b6",
+  "MLOps":              "#fb923c",
+  "Interview Prep":     "#f87171",
 }
 
 const CURRICULUM = [
@@ -34,55 +37,92 @@ const CURRICULUM = [
 ]
 
 const STATS = [
-  { value: "62",   label: "Lessons",       color: "#a78bfa" },
-  { value: "8",    label: "Categories",    color: "#22d3ee" },
-  { value: "700+", label: "Code Examples", color: "#f472b6" },
-  { value: "0",    label: "API Keys",      color: "#34d399" },
-]
-
-const STEPS = [
-  { n: "01", title: "Pick a lesson",      desc: "Choose any topic from 8 categories. No prerequisites — start anywhere.", color: "#a78bfa" },
-  { n: "02", title: "Learn with code",    desc: "In-depth explanations + runnable Python examples side by side.",          color: "#22d3ee" },
-  { n: "03", title: "Earn XP & badges",   desc: "Complete lessons to level up from Newcomer to Master, collect 8 badges.", color: "#ec4899" },
+  { val: "62",   label: "Lessons" },
+  { val: "8",    label: "Categories" },
+  { val: "700+", label: "Code Examples" },
+  { val: "0",    label: "API Keys" },
 ]
 
 export default function LandingPage() {
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger)
+
+    const ctx = gsap.context(() => {
+      // ── Hero sequence ──
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } })
+      tl.from("#hero-badge",   { opacity: 0, y: 10, duration: 0.45 })
+        .from("#hero-h1",      { opacity: 0, y: 28, duration: 0.6 }, "-=0.15")
+        .from("#hero-sub",     { opacity: 0, y: 18, duration: 0.5 }, "-=0.3")
+        .from("#hero-ctas",    { opacity: 0, y: 14, duration: 0.4 }, "-=0.25")
+        .from("#hero-stats",   { opacity: 0, y: 8,  duration: 0.4 }, "-=0.2")
+        .from("#hero-preview", { opacity: 0, x: 36, duration: 0.65, ease: "power2.out" }, "-=0.55")
+
+      // ── Stats counter ──
+      document.querySelectorAll<HTMLElement>(".stat-count").forEach((el) => {
+        const raw = el.dataset.val ?? "0"
+        const hasPlus = raw.endsWith("+")
+        const target = parseInt(raw)
+        const obj = { n: 0 }
+        gsap.to(obj, {
+          n: target,
+          duration: 1.6,
+          ease: "power2.out",
+          onUpdate() { el.textContent = Math.round(obj.n) + (hasPlus ? "+" : "") },
+          scrollTrigger: { trigger: el, start: "top 88%", once: true },
+        })
+      })
+
+      // ── Feature cards stagger ──
+      gsap.from(".feat-card", {
+        opacity: 0, y: 22, duration: 0.45, stagger: 0.07, ease: "power2.out",
+        scrollTrigger: { trigger: "#features", start: "top 82%", once: true },
+      })
+
+      // ── Curriculum cards stagger ──
+      gsap.from(".curr-card", {
+        opacity: 0, y: 18, duration: 0.38, stagger: 0.055, ease: "power2.out",
+        scrollTrigger: { trigger: "#curriculum", start: "top 82%", once: true },
+      })
+
+      // ── How it works steps ──
+      gsap.from(".how-step", {
+        opacity: 0, y: 22, duration: 0.45, stagger: 0.12, ease: "power2.out",
+        scrollTrigger: { trigger: "#how", start: "top 82%", once: true },
+      })
+
+      // ── CTA ──
+      gsap.from("#cta-box", {
+        opacity: 0, y: 24, duration: 0.5, ease: "power2.out",
+        scrollTrigger: { trigger: "#cta-box", start: "top 85%", once: true },
+      })
+    })
+
+    return () => ctx.revert()
+  }, [])
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
 
-      {/* Dot grid overlay */}
-      <div className="fixed inset-0 dot-grid pointer-events-none" />
-
-      {/* Animated aurora orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="aurora1 absolute top-[-20%] left-[5%] w-[650px] h-[650px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)" }} />
-        <div className="aurora2 absolute top-[25%] right-[-12%] w-[550px] h-[550px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent 70%)" }} />
-        <div className="aurora3 absolute bottom-[-18%] left-[20%] w-[700px] h-[400px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.1), transparent 70%)" }} />
-        <div className="aurora4 absolute top-[55%] left-[-8%] w-[450px] h-[450px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.09), transparent 70%)" }} />
-      </div>
+      {/* Subtle top gradient */}
+      <div className="fixed inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 40% at 50% -5%, rgba(124,58,237,0.07), transparent)" }} />
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4 border-b backdrop-blur-md"
-        style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(3,3,7,0.7)" }}>
+      <nav className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-8 py-4 border-b backdrop-blur-md"
+        style={{ borderColor: "var(--border)", background: "rgba(5,5,10,0.88)" }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm text-white neon-violet"
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
             style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
-          <span className="font-bold text-white text-lg tracking-tight">
-            AIZen <span className="gradient-text">Tutor</span>
-          </span>
+          <span className="font-semibold text-white">AIZen Tutor</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link href="/learn"
             className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
             Curriculum
           </Link>
           <Link href="/learn"
-            className="text-sm font-bold text-white px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 0 20px rgba(124,58,237,0.4)" }}>
+            className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
+            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
             Start Learning →
           </Link>
         </div>
@@ -91,106 +131,96 @@ export default function LandingPage() {
       {/* ─── Hero ─── */}
       <section className="relative z-10 px-4 sm:px-8 pt-16 sm:pt-24 lg:pt-32 pb-12 sm:pb-20">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
-            {/* Left: text */}
-            <div className="flex-1 text-center lg:text-left fade-up">
-              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-medium"
-                style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.45)", color: "#a78bfa" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            {/* Left */}
+            <div className="flex-1 text-center lg:text-left">
+              <div id="hero-badge"
+                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 mb-6 text-xs font-medium text-zinc-400"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 Free · No signup · No API keys
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-white leading-[1.06] mb-6">
+              <h1 id="hero-h1"
+                className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] mb-5">
                 Master AI & ML.<br />
-                <span className="gradient-text-animated">Earn XP. Level Up.</span>
+                <span className="gradient-text">Earn XP. Level Up.</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-zinc-400 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
-                The most comprehensive AI/ML learning platform — 62 in-depth lessons,
-                real Python code, gamified XP system, and interview prep. Go from zero
-                to AI engineer.
+              <p id="hero-sub"
+                className="text-base sm:text-lg text-zinc-500 max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed">
+                62 in-depth lessons, real Python code, a gamified XP system, and
+                interview prep. Go from zero to AI engineer — at your own pace.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
+              <div id="hero-ctas"
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-10">
                 <Link href="/learn"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-base font-bold text-white px-8 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-95 pulse-ring"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm font-semibold text-white px-7 py-3 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
                   style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
                   Start Learning Free
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
                 <Link href="/learn"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm text-zinc-300 hover:text-white glass px-6 py-3.5 rounded-xl transition-all hover:border-violet-500/40">
-                  View Curriculum →
+                  className="w-full sm:w-auto inline-flex items-center justify-center text-sm text-zinc-400 hover:text-white transition-colors glass px-6 py-3 rounded-lg">
+                  View 62 Lessons →
                 </Link>
               </div>
 
               {/* Stats */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 sm:gap-10">
+              <div id="hero-stats"
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-8 sm:gap-10">
                 {STATS.map((s) => (
                   <div key={s.label} className="text-center lg:text-left">
-                    <p className="text-2xl sm:text-3xl font-black" style={{ color: s.color, textShadow: `0 0 24px ${s.color}70` }}>
-                      {s.value}
+                    <p className="stat-count text-2xl font-black text-white" data-val={s.val}>
+                      {s.val}
                     </p>
-                    <p className="text-xs text-zinc-500 mt-0.5">{s.label}</p>
+                    <p className="text-xs text-zinc-600 mt-0.5">{s.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right: floating app preview */}
-            <div className="hidden lg:block flex-1 max-w-lg w-full float fade-up" style={{ animationDelay: "0.15s" }}>
-              <div className="relative">
-                {/* Glow blob */}
-                <div className="absolute inset-[-20px] blur-3xl rounded-3xl opacity-25"
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #22d3ee)" }} />
-                {/* Card */}
-                <div className="relative glass-bright rounded-2xl overflow-hidden"
-                  style={{ border: "1px solid rgba(139,92,246,0.35)" }}>
-                  {/* Gradient top accent */}
-                  <div className="h-0.5" style={{ background: "linear-gradient(90deg, #7c3aed, #22d3ee, #ec4899)" }} />
-                  {/* Code chrome */}
-                  <div className="flex items-center gap-2 px-4 py-3 border-b"
-                    style={{ background: "rgba(0,0,0,0.5)", borderColor: "rgba(255,255,255,0.06)" }}>
-                    <span className="w-3 h-3 rounded-full" style={{ background: "#ff5f57" }} />
-                    <span className="w-3 h-3 rounded-full" style={{ background: "#ffbd2e" }} />
-                    <span className="w-3 h-3 rounded-full" style={{ background: "#28ca41" }} />
-                    <span className="ml-3 text-xs font-mono" style={{ color: "#4a4a6a" }}>attention.py</span>
+            {/* Right: preview card */}
+            <div id="hero-preview" className="hidden lg:block w-full max-w-md float">
+              <div className="rounded-xl overflow-hidden border"
+                style={{ background: "#06060e", borderColor: "rgba(255,255,255,0.08)" }}>
+                {/* Chrome */}
+                <div className="flex items-center gap-2 px-4 py-3 border-b"
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ffbd2e" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#28ca41" }} />
+                  <span className="ml-3 text-xs font-mono text-zinc-700">attention.py</span>
+                </div>
+                {/* Code */}
+                <div className="px-5 py-4 font-mono text-xs leading-loose" style={{ background: "#03030a" }}>
+                  <p><span style={{ color: "#3a3a5a" }}># Scaled dot-product attention</span></p>
+                  <p><span style={{ color: "#c084fc" }}>def</span> <span style={{ color: "#67e8f9" }}>attention</span><span style={{ color: "#e2e8f0" }}>(Q, K, V):</span></p>
+                  <p className="ml-4"><span style={{ color: "#e2e8f0" }}>d_k </span><span style={{ color: "#c084fc" }}>=</span><span style={{ color: "#e2e8f0" }}> Q.shape[-</span><span style={{ color: "#fbbf24" }}>1</span><span style={{ color: "#e2e8f0" }}>]</span></p>
+                  <p className="ml-4"><span style={{ color: "#e2e8f0" }}>scores </span><span style={{ color: "#c084fc" }}>=</span><span style={{ color: "#e2e8f0" }}> Q @ K.transpose(-</span><span style={{ color: "#fbbf24" }}>2</span><span style={{ color: "#e2e8f0" }}>, -</span><span style={{ color: "#fbbf24" }}>1</span><span style={{ color: "#e2e8f0" }}>)</span></p>
+                  <p className="ml-4"><span style={{ color: "#e2e8f0" }}>scores </span><span style={{ color: "#c084fc" }}>/=</span><span style={{ color: "#e2e8f0" }}> d_k ** </span><span style={{ color: "#fbbf24" }}>0.5</span></p>
+                  <p className="ml-4"><span style={{ color: "#c084fc" }}>return</span><span style={{ color: "#e2e8f0" }}> softmax(scores) @ V</span></p>
+                </div>
+                {/* XP */}
+                <div className="px-4 py-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#06060e" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-white">🔭 Explorer · Level 3</span>
+                    <span className="text-xs text-zinc-600">1,200 / 1,500 XP</span>
                   </div>
-                  {/* Code */}
-                  <div className="px-5 py-4 font-mono text-xs leading-relaxed overflow-x-auto"
-                    style={{ background: "#04040a" }}>
-                    <div><span style={{ color: "#4a5568" }}># Scaled Dot-Product Attention</span></div>
-                    <div><span style={{ color: "#c084fc" }}>import</span> <span style={{ color: "#e2e8f0" }}>torch</span></div>
-                    <div><span style={{ color: "#c084fc" }}>import</span> <span style={{ color: "#e2e8f0" }}>torch.nn </span><span style={{ color: "#c084fc" }}>as</span><span style={{ color: "#e2e8f0" }}> nn</span></div>
-                    <div className="mt-2.5"><span style={{ color: "#c084fc" }}>def</span> <span style={{ color: "#67e8f9" }}>attention</span><span style={{ color: "#e2e8f0" }}>(Q, K, V):</span></div>
-                    <div className="ml-4"><span style={{ color: "#e2e8f0" }}>d_k </span><span style={{ color: "#c084fc" }}>=</span><span style={{ color: "#e2e8f0" }}> Q.shape[-</span><span style={{ color: "#fbbf24" }}>1</span><span style={{ color: "#e2e8f0" }}>]</span></div>
-                    <div className="ml-4"><span style={{ color: "#e2e8f0" }}>scores </span><span style={{ color: "#c084fc" }}>=</span><span style={{ color: "#e2e8f0" }}> Q @ K.transpose(-</span><span style={{ color: "#fbbf24" }}>2</span><span style={{ color: "#e2e8f0" }}>, -</span><span style={{ color: "#fbbf24" }}>1</span><span style={{ color: "#e2e8f0" }}>)</span></div>
-                    <div className="ml-4"><span style={{ color: "#e2e8f0" }}>scores </span><span style={{ color: "#c084fc" }}>/=</span><span style={{ color: "#e2e8f0" }}> d_k ** </span><span style={{ color: "#fbbf24" }}>0.5</span></div>
-                    <div className="ml-4"><span style={{ color: "#c084fc" }}>return</span><span style={{ color: "#e2e8f0" }}> nn.Softmax(dim=-</span><span style={{ color: "#fbbf24" }}>1</span><span style={{ color: "#e2e8f0" }}>) (scores) @ V</span></div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <div className="h-full rounded-full xp-bar-fill" style={{ width: "80%" }} />
                   </div>
-                  {/* XP panel */}
-                  <div className="px-4 py-3.5 border-t" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.4)" }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span>🔭</span>
-                        <span className="text-xs font-bold text-white">Explorer · Level 3</span>
-                      </div>
-                      <span className="text-xs font-bold" style={{ color: "#a78bfa" }}>1,200 / 1,500 XP</span>
-                    </div>
-                    <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
-                      <div className="h-full rounded-full xp-bar-fill" style={{ width: "80%" }} />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {["🤖 ML Scholar", "🧠 Deep Thinker", "💬 NLP Expert"].map((b) => (
-                        <span key={b} className="text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", color: "#fbbf24" }}>
-                          {b}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex gap-1.5 mt-2.5">
+                    {["🤖 ML Scholar", "🧠 Deep Thinker"].map((b) => (
+                      <span key={b} className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)", color: "#fbbf24" }}>
+                        {b}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -199,64 +229,83 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <div className="max-w-6xl mx-auto px-4 sm:px-8">
+        <div className="h-px" style={{ background: "var(--border)" }} />
+      </div>
+
       {/* ─── Features ─── */}
-      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
+      <section id="features" className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl font-black text-white mb-3">
+          <div className="mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
               Built for <span className="gradient-text">serious learners</span>
             </h2>
-            <p className="text-zinc-500">Everything you need to go from beginner to production ML engineer</p>
+            <p className="text-zinc-600 text-sm">Everything you need to go from beginner to production ML engineer</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {FEATURES.map((f, i) => (
-              <FeatureCard key={i} {...f} delay={i * 80} />
+              <div key={i} className="feat-card glass rounded-xl p-5 hover:border-white/[0.13] hover:-translate-y-0.5 transition-all"
+                style={{ transitionDuration: "160ms" }}>
+                <p className="text-xl mb-3">{f.icon}</p>
+                <h3 className="font-semibold text-white text-sm mb-1.5">{f.title}</h3>
+                <p className="text-zinc-600 text-sm leading-relaxed">{f.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── Curriculum ─── */}
-      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
+      <section id="curriculum" className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl font-black text-white mb-3">
+          <div className="mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
               Complete <span className="gradient-text">AI/ML Curriculum</span>
             </h2>
-            <p className="text-zinc-500">62 lessons covering the entire ML ecosystem</p>
+            <p className="text-zinc-600 text-sm">62 lessons covering the entire ML ecosystem</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {CURRICULUM.map((c, i) => {
-              const m = CAT_META[c.cat] ?? CAT_META["Machine Learning"]
-              return <CurriculumCard key={c.cat} item={c} meta={m} delay={i * 60} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {CURRICULUM.map((c) => {
+              const color = CAT_COLOR[c.cat] ?? "#a78bfa"
+              return (
+                <Link href="/learn" key={c.cat}
+                  className="curr-card glass rounded-xl p-4 hover:border-white/[0.13] hover:-translate-y-0.5 transition-all block"
+                  style={{ transitionDuration: "160ms" }}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="text-lg">{c.icon}</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}>
+                      {c.count}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-white text-sm mb-1">{c.cat}</h3>
+                  <p className="text-xs text-zinc-700 leading-relaxed">{c.topics}</p>
+                </Link>
+              )
             })}
           </div>
         </div>
       </section>
 
       {/* ─── How it works ─── */}
-      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-4xl font-black text-white mb-14">
+      <section id="how" className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-12">
             How it <span className="gradient-text">works</span>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 relative">
-            {/* Connecting line (desktop) */}
-            <div className="hidden sm:block absolute top-[22px] left-[calc(16.66%+12px)] right-[calc(16.66%+12px)] h-px"
-              style={{ background: "linear-gradient(90deg, #7c3aed, #22d3ee, #ec4899)" }} />
-            {STEPS.map((s) => (
-              <div key={s.n} className="text-center fade-up">
-                <div className="w-11 h-11 rounded-2xl mx-auto mb-4 flex items-center justify-center font-black text-sm relative z-10"
-                  style={{
-                    background: `${s.color}15`,
-                    border: `1px solid ${s.color}45`,
-                    color: s.color,
-                    boxShadow: `0 0 20px ${s.color}30`,
-                  }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {[
+              { n: "01", title: "Pick a lesson",    desc: "Choose any topic from 8 categories. No prerequisites — start anywhere." },
+              { n: "02", title: "Learn with code",  desc: "In-depth explanations with runnable Python examples and one-click copy." },
+              { n: "03", title: "Earn XP & badges", desc: "Complete lessons to level up from Newcomer to Master, collect 8 badges." },
+            ].map((s) => (
+              <div key={s.n} className="how-step">
+                <div className="w-9 h-9 rounded-xl mb-4 flex items-center justify-center font-bold text-sm"
+                  style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.18)", color: "#a78bfa" }}>
                   {s.n}
                 </div>
-                <h3 className="font-bold text-white mb-2">{s.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+                <h3 className="font-semibold text-white mb-1.5">{s.title}</h3>
+                <p className="text-zinc-600 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -264,93 +313,24 @@ export default function LandingPage() {
       </section>
 
       {/* ─── CTA ─── */}
-      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-28">
-        <div className="max-w-2xl mx-auto text-center glass rounded-2xl p-8 sm:p-14 relative overflow-hidden"
-          style={{ border: "1px solid rgba(139,92,246,0.35)" }}>
-          {/* Inner radial glow */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.18) 0%, transparent 65%)" }} />
-          <div className="relative">
-            <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Ready to level up?</h2>
-            <p className="text-zinc-400 mb-8 text-base">Start learning now. No account needed. Free forever.</p>
-            <Link href="/learn"
-              className="inline-flex items-center gap-2 text-base font-bold text-white px-10 py-4 rounded-xl transition-all hover:scale-105 active:scale-95 pulse-ring"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-              Start Learning Free ⚡
-            </Link>
-          </div>
+      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-24">
+        <div id="cta-box" className="max-w-2xl mx-auto text-center glass rounded-xl p-8 sm:p-12"
+          style={{ border: "1px solid rgba(124,58,237,0.18)" }}>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Ready to level up?</h2>
+          <p className="text-zinc-500 text-sm mb-7">Start learning now. No account needed. Free forever.</p>
+          <Link href="/learn"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white px-7 py-3 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
+            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
+            Start Learning Free ⚡
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t px-4 sm:px-8 py-6 text-center text-xs text-zinc-700"
+      <footer className="relative z-10 border-t px-4 sm:px-8 py-5 text-center text-xs text-zinc-700"
         style={{ borderColor: "var(--border)" }}>
-        <p>AIZen Tutor · Built for the AI generation · {LESSONS.length} lessons across {CATEGORIES.length} categories</p>
+        AIZen Tutor · {LESSONS.length} lessons across {CATEGORIES.length} categories
       </footer>
     </div>
-  )
-}
-
-function FeatureCard({ icon, title, desc, color, glow, delay }: {
-  icon: string; title: string; desc: string; color: string; glow: string; delay: number
-}) {
-  return (
-    <div
-      className="glass rounded-xl p-5 sm:p-6 transition-all duration-300 cursor-default fade-up"
-      style={{ animationDelay: `${delay}ms` }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.boxShadow = `0 0 30px ${glow}, 0 0 60px ${glow.replace("0.22", "0.1")}`
-        el.style.borderColor = color + "50"
-        el.style.transform = "translateY(-5px)"
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.boxShadow = ""
-        el.style.borderColor = ""
-        el.style.transform = ""
-      }}
-    >
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-4"
-        style={{ background: glow, border: `1px solid ${color}30` }}>
-        {icon}
-      </div>
-      <h3 className="font-bold text-white mb-2 text-sm sm:text-base">{title}</h3>
-      <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
-    </div>
-  )
-}
-
-function CurriculumCard({ item, meta, delay }: {
-  item: { cat: string; count: number; icon: string; topics: string }
-  meta: { color: string; bg: string; border: string; glow: string }
-  delay: number
-}) {
-  return (
-    <Link href="/learn"
-      className="glass rounded-xl p-4 sm:p-5 block transition-all duration-300 fade-up"
-      style={{ animationDelay: `${delay}ms` }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.boxShadow = `0 0 25px ${meta.glow}`
-        el.style.borderColor = meta.border
-        el.style.transform = "translateY(-4px)"
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.boxShadow = ""
-        el.style.borderColor = ""
-        el.style.transform = ""
-      }}>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl">{item.icon}</span>
-        <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-          style={{ background: meta.bg, color: meta.color, border: `1px solid ${meta.border}` }}>
-          {item.count} lessons
-        </span>
-      </div>
-      <h3 className="font-bold text-white text-sm mb-1.5">{item.cat}</h3>
-      <p className="text-xs leading-relaxed text-zinc-600">{item.topics}</p>
-    </Link>
   )
 }

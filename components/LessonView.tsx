@@ -10,26 +10,15 @@ interface Props {
   onNext?: () => void
 }
 
-const DIFFICULTY: Record<string, { label: string; color: string; bg: string }> = {
-  "Machine Learning":   { label: "Beginner",     color: "#34d399", bg: "rgba(52,211,153,0.1)" },
-  "Deep Learning":      { label: "Intermediate",  color: "#fbbf24", bg: "rgba(251,191,36,0.1)" },
-  "NLP & Transformers": { label: "Intermediate",  color: "#fbbf24", bg: "rgba(251,191,36,0.1)" },
-  "LLMs & Prompting":   { label: "Intermediate",  color: "#fbbf24", bg: "rgba(251,191,36,0.1)" },
-  "RAG Systems":        { label: "Advanced",      color: "#fb923c", bg: "rgba(251,146,60,0.1)" },
-  "Computer Vision":    { label: "Intermediate",  color: "#fbbf24", bg: "rgba(251,191,36,0.1)" },
-  "MLOps":              { label: "Advanced",      color: "#fb923c", bg: "rgba(251,146,60,0.1)" },
-  "Interview Prep":     { label: "Expert",        color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
-}
-
-const CAT_COLOR: Record<string, string> = {
-  "Machine Learning":   "#a78bfa",
-  "Deep Learning":      "#60a5fa",
-  "NLP & Transformers": "#22d3ee",
-  "LLMs & Prompting":   "#34d399",
-  "RAG Systems":        "#fbbf24",
-  "Computer Vision":    "#f472b6",
-  "MLOps":              "#fb923c",
-  "Interview Prep":     "#f87171",
+const DIFFICULTY: Record<string, { label: string; color: string }> = {
+  "Machine Learning":   { label: "Beginner",    color: "#34d399" },
+  "Deep Learning":      { label: "Intermediate", color: "#fbbf24" },
+  "NLP & Transformers": { label: "Intermediate", color: "#fbbf24" },
+  "LLMs & Prompting":   { label: "Intermediate", color: "#fbbf24" },
+  "RAG Systems":        { label: "Advanced",     color: "#fb923c" },
+  "Computer Vision":    { label: "Intermediate", color: "#fbbf24" },
+  "MLOps":              { label: "Advanced",     color: "#fb923c" },
+  "Interview Prep":     { label: "Expert",       color: "#f472b6" },
 }
 
 const READ_TIME: Record<string, string> = {
@@ -44,23 +33,21 @@ const READ_TIME: Record<string, string> = {
 }
 
 export default function LessonView({ lesson, isCompleted, onComplete, onPrev, onNext }: Props) {
-  const diff     = DIFFICULTY[lesson.category] ?? { label: "Intermediate", color: "#fbbf24", bg: "rgba(251,191,36,0.1)" }
+  const diff     = DIFFICULTY[lesson.category] ?? { label: "Intermediate", color: "#fbbf24" }
   const readTime = READ_TIME[lesson.category] ?? "10 min"
-  const catColor = CAT_COLOR[lesson.category] ?? "#a78bfa"
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 fade-up">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-10">
 
-      {/* Lesson header */}
+      {/* Header */}
       <div className="mb-7 sm:mb-9">
-        {/* Meta tags */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-            style={{ background: `${catColor}18`, border: `1px solid ${catColor}40`, color: catColor }}>
+          <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+            style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)", color: "#a78bfa" }}>
             {lesson.category}
           </span>
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-            style={{ background: diff.bg, border: `1px solid ${diff.color}40`, color: diff.color }}>
+          <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+            style={{ background: `${diff.color}12`, border: `1px solid ${diff.color}30`, color: diff.color }}>
             {diff.label}
           </span>
           <span className="text-xs text-zinc-600 flex items-center gap-1">
@@ -69,23 +56,17 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
             </svg>
             {readTime} read
           </span>
-          <span className="ml-auto text-xs font-black flex items-center gap-1"
-            style={{ color: catColor, textShadow: `0 0 12px ${catColor}60` }}>
-            ⚡ +100 XP
-          </span>
+          <span className="ml-auto text-xs font-semibold text-violet-400">⚡ +100 XP</span>
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-5">
           {lesson.title}
         </h1>
 
-        {/* Complete button */}
         {isCompleted ? (
-          <div className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl"
-            style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", color: "#34d399" }}>
-            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center"
-              style={{ boxShadow: "0 0 10px rgba(52,211,153,0.5)" }}>
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+          <div className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+              <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -93,11 +74,8 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
           </div>
         ) : (
           <button onClick={onComplete}
-            className="inline-flex items-center gap-2 text-sm font-black text-white px-6 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: "linear-gradient(135deg,#059669,#10b981)",
-              boxShadow: "0 0 25px rgba(16,185,129,0.4), 0 0 50px rgba(16,185,129,0.15)",
-            }}>
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white px-5 py-2.5 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
+            style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -107,70 +85,59 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
       </div>
 
       {/* Divider */}
-      <div className="h-px mb-7 sm:mb-10"
-        style={{ background: `linear-gradient(90deg, ${catColor}50, rgba(255,255,255,0.04), transparent)` }} />
+      <div className="h-px mb-7 sm:mb-10" style={{ background: "var(--border)" }} />
 
       {/* Sections */}
-      <div className="space-y-9 sm:space-y-12">
+      <div className="space-y-9 sm:space-y-11">
         {lesson.content.map((section, i) => (
-          <section key={i} className="fade-up" style={{ animationDelay: `${i * 60}ms` }}>
-            {/* Section heading */}
+          <div key={i}>
             <div className="flex items-start gap-3 mb-3">
-              <div className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5"
-                style={{
-                  background: `linear-gradient(135deg, ${catColor}25, ${catColor}10)`,
-                  border: `1px solid ${catColor}35`,
-                  color: catColor,
-                  boxShadow: `0 0 8px ${catColor}20`,
-                }}>
+              <div className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold mt-0.5"
+                style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.18)", color: "#a78bfa" }}>
                 {i + 1}
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white leading-snug">{section.heading}</h2>
             </div>
 
             {section.body && (
-              <div className="ml-9">
-                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line">{section.body}</p>
-              </div>
+              <p className="ml-9 text-sm text-zinc-400 leading-relaxed whitespace-pre-line">{section.body}</p>
             )}
 
             {section.code && (
               <div className="ml-0 sm:ml-9 mt-3">
-                <CodeBlock code={section.code} catColor={catColor} />
+                <CodeBlock code={section.code} />
               </div>
             )}
 
             {section.note && (
               <div className="ml-0 sm:ml-9 mt-3 flex gap-3 rounded-xl p-3 sm:p-4"
-                style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }}>
-                <span className="text-amber-400 shrink-0 text-sm">💡</span>
-                <p className="text-amber-200/80 text-xs sm:text-sm leading-relaxed">{section.note}</p>
+                style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)" }}>
+                <span className="text-amber-500 shrink-0 text-sm">💡</span>
+                <p className="text-amber-200/70 text-xs sm:text-sm leading-relaxed">{section.note}</p>
               </div>
             )}
-          </section>
+          </div>
         ))}
       </div>
 
       {/* Bottom CTA */}
       {!isCompleted && (
-        <div className="mt-12 p-5 sm:p-6 rounded-xl text-center relative overflow-hidden"
-          style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.18)" }}>
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.08) 0%, transparent 70%)" }} />
-          <p className="relative text-sm text-zinc-400 mb-3">Finished this lesson? Mark it complete to earn your XP.</p>
+        <div className="mt-12 p-5 rounded-xl text-center"
+          style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.12)" }}>
+          <p className="text-sm text-zinc-500 mb-3">Finished reading? Mark it complete to earn your XP.</p>
           <button onClick={onComplete}
-            className="relative inline-flex items-center gap-2 text-sm font-black text-white px-7 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
-            style={{ background: "linear-gradient(135deg,#059669,#10b981)", boxShadow: "0 0 20px rgba(16,185,129,0.35)" }}>
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
+            style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
             ⚡ Complete &amp; Earn 100 XP
           </button>
         </div>
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between mt-10 sm:mt-12 pt-6 gap-3"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="flex justify-between mt-10 pt-6 gap-3"
+        style={{ borderTop: "1px solid var(--border)" }}>
         <button onClick={onPrev} disabled={!onPrev}
-          className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-all hover:-translate-x-0.5 disabled:opacity-25 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg transition-all hover:-translate-x-0.5 disabled:opacity-25 disabled:cursor-not-allowed"
           style={{ color: "#a1a1aa", border: "1px solid rgba(255,255,255,0.07)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 5l-7 7 7 7" />
@@ -179,11 +146,8 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
         </button>
 
         <button onClick={onNext} disabled={!onNext}
-          className="flex items-center gap-2 text-sm font-black text-white px-6 py-2.5 rounded-xl transition-all hover:translate-x-0.5 disabled:opacity-25 disabled:cursor-not-allowed"
-          style={{
-            background: `linear-gradient(135deg, ${catColor}cc, ${catColor}88)`,
-            boxShadow: `0 0 20px ${catColor}40`,
-          }}>
+          className="flex items-center gap-2 text-sm font-semibold text-white px-5 py-2.5 rounded-lg transition-all hover:translate-x-0.5 disabled:opacity-25 disabled:cursor-not-allowed"
+          style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
           <span className="hidden sm:inline">Next Lesson</span>
           <span className="sm:hidden">Next</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -195,7 +159,7 @@ export default function LessonView({ lesson, isCompleted, onComplete, onPrev, on
   )
 }
 
-function CodeBlock({ code, catColor }: { code: string; catColor: string }) {
+function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     navigator.clipboard.writeText(code)
@@ -205,28 +169,19 @@ function CodeBlock({ code, catColor }: { code: string; catColor: string }) {
 
   return (
     <div className="rounded-xl overflow-hidden"
-      style={{
-        background: "#04040a",
-        border: "1px solid rgba(255,255,255,0.07)",
-        boxShadow: `0 0 0 1px ${catColor}18`,
-      }}>
-      {/* Neon gradient top line */}
-      <div className="h-0.5" style={{ background: `linear-gradient(90deg, ${catColor}, #22d3ee, #ec4899)` }} />
-      {/* Chrome bar */}
+      style={{ background: "#03030a", border: "1px solid rgba(255,255,255,0.07)" }}>
+      {/* Chrome */}
       <div className="flex items-center justify-between px-4 py-2.5"
-        style={{ background: "rgba(0,0,0,0.5)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex gap-1.5">
-          <span className="w-3 h-3 rounded-full" style={{ background: "#ff5f57" }} />
-          <span className="w-3 h-3 rounded-full" style={{ background: "#ffbd2e" }} />
-          <span className="w-3 h-3 rounded-full" style={{ background: "#28ca41" }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ffbd2e" }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#28ca41" }} />
         </div>
-        <span className="text-xs font-mono font-medium" style={{ color: "#3a3a5a" }}>Python</span>
+        <span className="text-xs font-mono" style={{ color: "#3a3a5a" }}>Python</span>
         <button onClick={copy}
-          className="flex items-center gap-1.5 text-xs transition-all px-2 py-1 rounded"
-          style={{
-            color: copied ? "#34d399" : "#4a4a6a",
-            background: copied ? "rgba(52,211,153,0.1)" : "transparent",
-          }}>
+          className="flex items-center gap-1.5 text-xs transition-colors"
+          style={{ color: copied ? "#34d399" : "#4a4a6a" }}>
           {copied ? (
             <>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -312,8 +267,7 @@ function tokenize(code: string): Token[] {
         if (code[j] === "\\") j++
         j++
       }
-      const text = code.slice(i, j + 1)
-      tokens.push({ text, type: "string" })
+      tokens.push({ text: code.slice(i, j + 1), type: "string" })
       i = j + 1
     } else if (code[i] === "@") {
       let j = i + 1
@@ -329,8 +283,7 @@ function tokenize(code: string): Token[] {
       let j = i
       while (j < code.length && /\w/.test(code[j])) j++
       const word = code.slice(i, j)
-      const type: TokenType = KEYWORDS.has(word) ? "keyword" : BUILTINS.has(word) ? "builtin" : "plain"
-      tokens.push({ text: word, type })
+      tokens.push({ text: word, type: KEYWORDS.has(word) ? "keyword" : BUILTINS.has(word) ? "builtin" : "plain" })
       i = j
     } else {
       tokens.push({ text: code[i], type: "plain" })

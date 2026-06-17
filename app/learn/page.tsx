@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { gsap } from "gsap"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
 import {
   getCompleted, markComplete, getXP, getLevel, getLevelProgress,
@@ -17,6 +18,7 @@ export default function LearnPage() {
   const [isMobile, setIsMobile]             = useState(false)
   const [search, setSearch]                 = useState("")
   const [justLeveledUp, setJustLeveledUp]   = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setCompleted(getCompleted())
@@ -30,6 +32,15 @@ export default function LearnPage() {
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
   }, [])
+
+  // Smooth lesson transition
+  useEffect(() => {
+    if (!contentRef.current) return
+    gsap.fromTo(contentRef.current,
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
+    )
+  }, [activeLessonId])
 
   const xp       = getXP(completed)
   const level    = getLevel(xp)
@@ -58,10 +69,10 @@ export default function LearnPage() {
     const newXP = getXP(updated)
     const newLevel = getLevel(newXP).name
     setXpToast({ show: true, xp: XP_PER_LESSON })
-    setTimeout(() => setXpToast({ show: false, xp: 0 }), 2800)
+    setTimeout(() => setXpToast({ show: false, xp: 0 }), 2500)
     if (newLevel !== prevLevel) {
       setJustLeveledUp(true)
-      setTimeout(() => setJustLeveledUp(false), 3500)
+      setTimeout(() => setJustLeveledUp(false), 3200)
     }
   }, [activeLessonId, completed])
 
@@ -70,7 +81,7 @@ export default function LearnPage() {
 
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
-        <div className="fixed inset-0 bg-black/70 z-20 backdrop-blur-sm"
+        <div className="fixed inset-0 bg-black/60 z-20 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)} />
       )}
 
@@ -83,16 +94,13 @@ export default function LearnPage() {
         }`}
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 
-        {/* Sidebar header */}
+        {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b"
           style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white neon-violet"
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
               style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
-            <span className="font-bold text-sm">
-              <span className="text-white">AIZen</span>
-              <span className="gradient-text"> Tutor</span>
-            </span>
+            <span className="font-semibold text-white text-sm">AIZen Tutor</span>
           </div>
           {isMobile && (
             <button onClick={() => setSidebarOpen(false)} className="text-zinc-500 hover:text-white p-1 transition-colors">
@@ -104,52 +112,38 @@ export default function LearnPage() {
         </div>
 
         {/* XP Panel */}
-        <div className="shrink-0 px-4 py-3.5 border-b relative overflow-hidden"
-          style={{ borderColor: "var(--border)", background: "rgba(139,92,246,0.04)" }}>
-          {/* Subtle glow */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(139,92,246,0.12) 0%, transparent 70%)" }} />
-          <div className="relative">
-            <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg">{level.emoji}</span>
-                <div>
-                  <p className="text-xs font-black text-white leading-none">{level.name}</p>
-                  <p className="text-xs text-zinc-600 leading-none mt-0.5">Level {["Newcomer","Learner","Explorer","Developer","Engineer","Expert","Master"].indexOf(level.name) + 1}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="flex items-center gap-1">
-                  🔥 <span className="text-orange-400 font-black">{streak}</span>
-                </span>
-                <span className="font-black" style={{ color: "#a78bfa" }}>{xp.toLocaleString()} XP</span>
-              </div>
+        <div className="shrink-0 px-4 py-3.5 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base">{level.emoji}</span>
+              <span className="text-xs font-semibold text-white">{level.name}</span>
             </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
-              <div className="h-full rounded-full xp-bar-fill transition-all duration-700"
-                style={{ width: `${progress}%` }} />
+            <div className="flex items-center gap-3 text-xs">
+              <span>🔥 <span className="text-orange-400 font-semibold">{streak}</span></span>
+              <span className="text-violet-300 font-semibold">{xp.toLocaleString()} XP</span>
             </div>
-            {nextLvl && (
-              <p className="text-xs mt-1.5" style={{ color: "#4a4a6a" }}>
-                {nextLvl.min - xp} XP → {nextLvl.emoji} {nextLvl.name}
-              </p>
-            )}
-            {/* Badges row */}
-            {badges.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2.5">
-                {badges.map((id) => {
-                  const badge = BADGES.find((b) => b.id === id)
-                  return badge ? (
-                    <span key={id} title={badge.label}
-                      className="text-xs px-2 py-0.5 rounded-full"
-                      style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.28)", color: "#fbbf24" }}>
-                      {badge.icon} {badge.label}
-                    </span>
-                  ) : null
-                })}
-              </div>
-            )}
           </div>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div className="h-full rounded-full xp-bar-fill transition-all duration-700"
+              style={{ width: `${progress}%` }} />
+          </div>
+          {nextLvl && (
+            <p className="text-xs text-zinc-600 mt-1.5">{nextLvl.min - xp} XP → {nextLvl.emoji} {nextLvl.name}</p>
+          )}
+          {badges.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2.5">
+              {badges.map((id) => {
+                const badge = BADGES.find((b) => b.id === id)
+                return badge ? (
+                  <span key={id} title={badge.label}
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.22)", color: "#fbbf24" }}>
+                    {badge.icon} {badge.label}
+                  </span>
+                ) : null
+              })}
+            </div>
+          )}
         </div>
 
         {/* Search */}
@@ -178,21 +172,21 @@ export default function LearnPage() {
         {/* Progress footer */}
         <div className="shrink-0 px-4 py-3 border-t" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-zinc-600">Overall Progress</span>
-            <span className="font-bold gradient-text">{completed.length}/{LESSONS.length}</span>
+            <span className="text-zinc-600">Progress</span>
+            <span className="text-violet-400 font-semibold">{completed.length}/{LESSONS.length}</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-            <div className="h-full rounded-full xp-bar-fill transition-all duration-700"
+          <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+            <div className="h-full rounded-full bg-violet-600 transition-all duration-700"
               style={{ width: `${Math.round((completed.length / LESSONS.length) * 100)}%` }} />
           </div>
         </div>
       </aside>
 
-      {/* ─── Main content ─── */}
+      {/* ─── Main ─── */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Topbar */}
         <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b z-10"
-          style={{ background: "rgba(8,8,15,0.95)", borderColor: "var(--border)", backdropFilter: "blur(12px)" }}>
+          style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 
           <button onClick={() => setSidebarOpen((v) => !v)}
             className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all">
@@ -201,35 +195,30 @@ export default function LearnPage() {
             </svg>
           </button>
 
-          {/* Breadcrumb */}
           <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs">
             <span className="text-zinc-600 hidden sm:inline shrink-0">{activeLesson?.category}</span>
             <span className="text-zinc-700 hidden sm:inline">/</span>
             <span className="text-zinc-300 truncate font-medium">{activeLesson?.title}</span>
           </div>
 
-          {/* Level pill */}
-          <div className="hidden sm:flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs"
-            style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)" }}>
+          <div className="hidden sm:flex items-center gap-2 glass rounded-lg px-3 py-1.5 text-xs">
             <span>{level.emoji}</span>
-            <span className="text-white font-bold">{level.name}</span>
-            <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
+            <span className="text-white font-medium">{level.name}</span>
+            <div className="w-20 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
               <div className="h-full xp-bar-fill rounded-full" style={{ width: `${progress}%` }} />
             </div>
-            <span className="font-black" style={{ color: "#a78bfa" }}>{xp.toLocaleString()}</span>
+            <span className="text-violet-300 font-semibold">{xp.toLocaleString()}</span>
           </div>
 
-          {/* Streak */}
           <div className="flex items-center gap-1 text-xs">
             <span>🔥</span>
-            <span className="text-orange-400 font-black">{streak}</span>
+            <span className="text-orange-400 font-semibold">{streak}</span>
           </div>
 
-          {/* Progress */}
           <div className="shrink-0 flex items-center gap-2">
             <span className="text-xs text-zinc-600 hidden sm:inline">{activeIndex + 1}/{LESSONS.length}</span>
-            <div className="w-12 sm:w-20 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-              <div className="h-full xp-bar-fill rounded-full transition-all duration-500"
+            <div className="w-12 sm:w-20 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <div className="h-full bg-violet-600 rounded-full transition-all duration-500"
                 style={{ width: `${((activeIndex + 1) / LESSONS.length) * 100}%` }} />
             </div>
           </div>
@@ -237,49 +226,39 @@ export default function LearnPage() {
 
         {/* Lesson content */}
         <main className="flex-1 overflow-y-auto">
-          {activeLesson && (
-            <LessonView
-              lesson={activeLesson}
-              isCompleted={isCompleted}
-              onComplete={handleComplete}
-              onPrev={prevLesson ? () => setActiveLessonId(prevLesson.id) : undefined}
-              onNext={nextLesson ? () => setActiveLessonId(nextLesson.id) : undefined}
-            />
-          )}
+          <div ref={contentRef}>
+            {activeLesson && (
+              <LessonView
+                lesson={activeLesson}
+                isCompleted={isCompleted}
+                onComplete={handleComplete}
+                onPrev={prevLesson ? () => setActiveLessonId(prevLesson.id) : undefined}
+                onNext={nextLesson ? () => setActiveLessonId(nextLesson.id) : undefined}
+              />
+            )}
+          </div>
         </main>
       </div>
 
       {/* ─── XP Toast ─── */}
       {xpToast.show && (
         <div className="fixed bottom-6 right-6 z-50 xp-pop pointer-events-none">
-          <div className="flex items-center gap-3 rounded-2xl px-5 py-3.5 shadow-2xl"
-            style={{
-              background: "linear-gradient(135deg, #7c3aed, #22d3ee)",
-              boxShadow: "0 0 40px rgba(139,92,246,0.7), 0 0 80px rgba(34,211,238,0.3)",
-            }}>
-            <span className="text-2xl">⚡</span>
-            <div>
-              <p className="text-white font-black text-sm leading-none">+{xpToast.xp} XP Earned!</p>
-              <p className="text-white/60 text-xs mt-0.5">Keep going!</p>
-            </div>
+          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
+            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 8px 32px rgba(124,58,237,0.35)" }}>
+            <span>⚡</span>
+            <span className="text-white">+{xpToast.xp} XP Earned!</span>
           </div>
         </div>
       )}
 
-      {/* ─── Level-up banner ─── */}
+      {/* ─── Level-up ─── */}
       {justLeveledUp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-          style={{ background: "rgba(3,3,7,0.75)", backdropFilter: "blur(12px)" }}>
-          {/* Glow blob */}
-          <div className="absolute w-[500px] h-[500px] rounded-full blur-3xl"
-            style={{ background: "radial-gradient(circle, rgba(139,92,246,0.35), rgba(34,211,238,0.2), transparent 70%)" }} />
-          <div className="relative text-center level-up-enter">
-            <div className="text-8xl sm:text-9xl mb-4 float">{level.emoji}</div>
-            <div className="text-4xl sm:text-5xl font-black gradient-text-animated mb-3">Level Up!</div>
-            <div className="text-lg sm:text-xl font-bold text-white">
-              You are now a <span style={{ color: "#a78bfa" }}>{level.name}</span>
-            </div>
-            <div className="mt-3 text-zinc-500 text-sm">Keep learning to unlock more rewards ⚡</div>
+          style={{ background: "rgba(0,0,0,0.55)" }}>
+          <div className="text-center level-up-enter">
+            <div className="text-7xl mb-3 float">{level.emoji}</div>
+            <div className="text-3xl font-black gradient-text mb-2">Level Up!</div>
+            <div className="text-white font-semibold">You are now a {level.name}</div>
           </div>
         </div>
       )}

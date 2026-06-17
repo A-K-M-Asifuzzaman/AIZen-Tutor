@@ -31,7 +31,9 @@ export default function LearnSidebar({ activeLessonId, completed, onSelect, sear
   if (filtered) {
     return (
       <nav className="py-2 px-2">
-        <p className="text-xs text-zinc-600 px-2 mb-2">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</p>
+        <p className="text-xs text-zinc-600 px-2 mb-2">
+          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+        </p>
         {filtered.length === 0
           ? <p className="text-xs text-zinc-700 px-3">No lessons found</p>
           : filtered.map((l) => (
@@ -55,18 +57,14 @@ export default function LearnSidebar({ activeLessonId, completed, onSelect, sear
           <div key={cat} className="mb-4">
             {/* Category header */}
             <div className="flex items-center gap-2 px-2 mb-1.5">
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-              <p className="text-xs font-semibold uppercase tracking-wider flex-1 truncate" style={{ color: color + "bb" }}>
-                {cat}
-              </p>
-              <span className="text-xs font-medium" style={{ color: done === total && total > 0 ? color : "#3f3f46" }}>
-                {done}/{total}
-              </span>
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color, opacity: 0.7 }} />
+              <p className="text-xs font-semibold uppercase tracking-wider flex-1 truncate text-zinc-500">{cat}</p>
+              <span className="text-xs text-zinc-700">{done}/{total}</span>
             </div>
-            {/* Category progress bar */}
+            {/* Progress bar */}
             <div className="mx-2 mb-2 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
               <div className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, background: color, boxShadow: `0 0 6px ${color}` }} />
+                style={{ width: `${pct}%`, background: color, opacity: 0.7 }} />
             </div>
             {lessons.map((l) => (
               <LessonItem key={l.id} lesson={l} active={l.id === activeLessonId}
@@ -89,22 +87,21 @@ function LessonItem({ lesson, active, done, onClick, color }: {
   return (
     <button onClick={onClick}
       className={`w-full text-left text-xs px-3 py-2 rounded-lg mb-0.5 flex items-center gap-2 transition-all group ${
-        active ? "text-white font-semibold" : "text-zinc-500 hover:text-zinc-200"
+        active ? "text-white font-medium" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]"
       }`}
       style={active ? {
-        background: `linear-gradient(135deg, ${color}18, ${color}08)`,
-        border: `1px solid ${color}40`,
-        boxShadow: `0 0 12px ${color}20`,
+        background: "rgba(124,58,237,0.12)",
+        border: "1px solid rgba(124,58,237,0.22)",
       } : { border: "1px solid transparent" }}>
 
-      {/* Status dot */}
-      <span className={`shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-all ${
+      {/* Status indicator */}
+      <span className={`shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
         done ? "text-white" : ""
       }`}
         style={done
-          ? { background: color, boxShadow: `0 0 8px ${color}60` }
+          ? { background: color, opacity: 0.85 }
           : active
-            ? { border: `2px solid ${color}`, boxShadow: `0 0 8px ${color}40` }
+            ? { border: `1.5px solid rgba(124,58,237,0.6)` }
             : { border: "1px solid rgba(255,255,255,0.1)" }
         }>
         {done && (
@@ -116,10 +113,10 @@ function LessonItem({ lesson, active, done, onClick, color }: {
 
       <span className="flex-1 leading-snug truncate">{lesson.title}</span>
 
-      {/* XP badge on hover */}
       {!done && (
-        <span className={`text-xs shrink-0 font-bold transition-opacity ${active ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-          style={{ color }}>
+        <span className={`text-xs shrink-0 font-medium transition-opacity text-zinc-600 ${
+          active ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}>
           +100
         </span>
       )}
