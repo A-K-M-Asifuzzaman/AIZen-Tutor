@@ -9,15 +9,16 @@ export async function POST(req: NextRequest) {
     return new Response("GROQ_API_KEY not configured", { status: 503 })
   }
   const groq = new Groq({ apiKey })
-  const { messages, lessonTitle, lessonCategory } = await req.json() as {
+  const { messages, lessonTitle, lessonCategory, systemOverride } = await req.json() as {
     messages: { role: "user" | "assistant"; content: string }[]
-    lessonTitle: string
-    lessonCategory: string
+    lessonTitle?: string
+    lessonCategory?: string
+    systemOverride?: string
   }
 
-  const systemPrompt = `You are an expert AI/ML tutor inside AIZen Tutor, a gamified machine learning learning platform.
+  const systemPrompt = systemOverride ?? `You are an expert AI/ML tutor inside AIZen Tutor, a gamified machine learning learning platform.
 
-The student is currently studying: "${lessonTitle}" (Category: ${lessonCategory})
+The student is currently studying: "${lessonTitle ?? "General AI/ML"}" (Category: ${lessonCategory ?? "General"})
 
 Your role:
 - Answer questions about this lesson concisely and clearly

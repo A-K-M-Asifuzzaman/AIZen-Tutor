@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
 import { getCompleted, getCategoryProgress } from "@/lib/progress"
+import Nav from "@/components/Nav"
 
 const NODES = [
   {
@@ -119,22 +120,7 @@ export default function RoadmapPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
 
-      {/* Nav */}
-      <header className="sticky top-0 z-10 border-b px-4 sm:px-8 py-3.5 flex items-center gap-4"
-        style={{ background: "rgba(5,5,10,0.9)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
-        <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
-          <span className="font-semibold text-white text-sm hidden sm:inline">AIZen Tutor</span>
-        </Link>
-        <span className="text-zinc-700 hidden sm:inline">/</span>
-        <span className="text-zinc-400 text-sm flex-1">Learning Roadmap</span>
-        <Link href="/learn"
-          className="text-xs font-semibold text-white px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-          style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-          Start Learning →
-        </Link>
-      </header>
+      <Nav />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <div className="mb-10 text-center">

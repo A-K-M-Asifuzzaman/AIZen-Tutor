@@ -4,6 +4,7 @@ import Link from "next/link"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
+import Nav from "@/components/Nav"
 
 const PROJECTS = [
   { icon: "🏠", title: "House Price Prediction", desc: "Regression model with feature engineering, EDA, and Ridge/Lasso tuning on the Ames Housing dataset.", tags: ["Scikit-Learn","XGBoost","Pandas","Matplotlib"], color: "#a78bfa" },
@@ -14,24 +15,33 @@ const PROJECTS = [
   { icon: "🤖", title: "NER System (spaCy + Transformers)", desc: "Custom NER for extracting skills and technologies from job postings using BIO tagging.", tags: ["spaCy","Transformers","BIO","PyTorch"], color: "#fb923c" },
 ]
 
-const SKILLS = [
-  { name: "Python",         icon: "🐍" },
-  { name: "PyTorch",        icon: "🔥" },
-  { name: "Scikit-Learn",   icon: "🤖" },
-  { name: "LangChain",      icon: "⛓️" },
-  { name: "FastAPI",        icon: "⚡" },
-  { name: "Transformers",   icon: "🧠" },
-  { name: "Docker",         icon: "🐳" },
-  { name: "FAISS",          icon: "🔍" },
-]
 
 const FEATURES = [
   { icon: "🧠", title: "62 In-Depth Lessons",   desc: "From linear regression to diffusion models — every concept explained with code." },
   { icon: "⚡", title: "XP & Level System",      desc: "Earn 100 XP per lesson + bonus XP from quizzes. Level up from Newcomer to Master." },
-  { icon: "🔥", title: "Daily Streaks",          desc: "Build a consistent habit. Streak tracking keeps you accountable every day." },
-  { icon: "📝", title: "Quizzes + Notes",        desc: "3 MCQs per lesson with explanations and bonus XP. Add personal notes to any lesson." },
+  { icon: "🔥", title: "Daily Challenges",       desc: "One ML question + coding challenge + interview question — new every 24 hours." },
+  { icon: "📝", title: "5 MCQs per Lesson",      desc: "Instant feedback, explanations, and bonus XP after every lesson completion." },
   { icon: "💻", title: "Real Python Code",       desc: "Every concept backed by runnable, production-quality Python with one-click copy." },
-  { icon: "📊", title: "Progress Dashboard",     desc: "Activity heatmap, category rings, quiz stats, bookmarks — see your full journey." },
+  { icon: "📊", title: "Analytics Dashboard",    desc: "Activity heatmap, skill radar, quiz stats, bookmarks — see your full journey." },
+  { icon: "🤖", title: "AI Tutor (Groq)",        desc: "Ask anything about any lesson — powered by Llama 3.3 70B via Groq API." },
+  { icon: "📄", title: "Research Papers",        desc: "7 foundational AI papers explained in plain English with key ideas and applications." },
+  { icon: "🎤", title: "Interview Hub",          desc: "25+ ML/DL/NLP/LLM questions across theory, coding, and system design." },
+  { icon: "🏗️", title: "9 ML Projects",         desc: "End-to-end projects with architecture, datasets, GitHub, and skills used." },
+  { icon: "🌳", title: "Visual Skill Tree",      desc: "Track your progress across the entire ML Engineer skill tree node by node." },
+  { icon: "📁", title: "RAG Tutor",             desc: "Upload any document and ask questions — grounded answers, no hallucination." },
+]
+
+const PLATFORM_LINKS = [
+  { href: "/learn",       icon: "📚", label: "Learn",         desc: "62 lessons with code, quizzes, AI tutor, notes", color: "#a78bfa" },
+  { href: "/roadmap",     icon: "🗺️", label: "Roadmap",       desc: "Visual learning path from Python to MLOps",     color: "#60a5fa" },
+  { href: "/skill-tree",  icon: "🌳", label: "Skill Tree",    desc: "ML Engineer tree with per-node progress",       color: "#34d399" },
+  { href: "/projects",    icon: "🏗️", label: "Projects",      desc: "9 ML/DL/LLM projects with full architecture",   color: "#22d3ee" },
+  { href: "/research",    icon: "📄", label: "Research",      desc: "7 foundational AI papers explained simply",     color: "#fbbf24" },
+  { href: "/interview",   icon: "🎤", label: "Interview Hub", desc: "Theory, coding & system design questions",      color: "#fb923c" },
+  { href: "/daily",       icon: "🔥", label: "Daily Challenge","desc": "New ML + coding + interview Q every day",    color: "#f472b6" },
+  { href: "/rag-tutor",   icon: "🤖", label: "RAG Tutor",     desc: "Upload docs and ask questions — grounded AI",  color: "#a78bfa" },
+  { href: "/dashboard",   icon: "📊", label: "Dashboard",     desc: "XP, streaks, heatmap, badges, skill radar",    color: "#60a5fa" },
+  { href: "/about",       icon: "👤", label: "About",         desc: "Creator profile and portfolio",                color: "#34d399" },
 ]
 
 const CAT_COLOR: Record<string, string> = {
@@ -58,9 +68,9 @@ const CURRICULUM = [
 
 const STATS = [
   { val: "62",   label: "Lessons" },
-  { val: "8",    label: "Categories" },
-  { val: "700+", label: "Code Examples" },
-  { val: "0",    label: "API Keys" },
+  { val: "10",   label: "Pages" },
+  { val: "310+", label: "Quiz Questions" },
+  { val: "0",    label: "Cost" },
 ]
 
 export default function LandingPage() {
@@ -121,7 +131,6 @@ export default function LandingPage() {
       reveal(".curr-card",    "#curriculum", 0.055)
       reveal(".how-step",     "#how",        0.12)
       reveal(".project-card", "#projects",   0.06)
-      reveal("#about-box",    "#about",      0)
       reveal("#cta-box",      "#cta-box",    0)
     })
 
@@ -135,34 +144,7 @@ export default function LandingPage() {
       <div className="fixed inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse 80% 40% at 50% -5%, rgba(124,58,237,0.07), transparent)" }} />
 
-      {/* Nav */}
-      <nav className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-8 py-4 border-b backdrop-blur-md"
-        style={{ borderColor: "var(--border)", background: "rgba(5,5,10,0.88)" }}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
-          <span className="font-semibold text-white">AIZen Tutor</span>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Link href="/learn"
-            className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
-            Curriculum
-          </Link>
-          <Link href="/roadmap"
-            className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
-            Roadmap
-          </Link>
-          <Link href="/dashboard"
-            className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
-            Dashboard
-          </Link>
-          <Link href="/learn"
-            className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-90 active:scale-95"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-            Start Learning →
-          </Link>
-        </div>
-      </nav>
+      <Nav />
 
       {/* ─── Hero ─── */}
       <section className="relative z-10 px-4 sm:px-8 pt-16 sm:pt-24 lg:pt-32 pb-12 sm:pb-20">
@@ -278,7 +260,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-zinc-600 text-sm">Everything you need to go from beginner to production ML engineer</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {FEATURES.map((f, i) => (
               <div key={i} className="feat-card glass rounded-xl p-5 hover:border-white/[0.13] hover:-translate-y-0.5 transition-all"
                 style={{ transitionDuration: "160ms" }}>
@@ -383,73 +365,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── About ─── */}
-      <section id="about" className="relative z-10 px-4 sm:px-8 py-16 sm:py-20">
-        <div className="max-w-4xl mx-auto">
-          <div id="about-box" className="glass rounded-2xl p-6 sm:p-10"
-            style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-
-              {/* Avatar */}
-              <div className="shrink-0 w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black text-white"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-                AZ
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                  <h2 className="text-xl font-black text-white">Asif Zaman</h2>
-                  <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-flex items-center gap-1.5 mx-auto sm:mx-0"
-                    style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)", color: "#34d399" }}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Open to Opportunities
-                  </span>
+      {/* ─── Platform Explorer ─── */}
+      <section className="relative z-10 px-4 sm:px-8 py-16 sm:py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+              The Complete <span className="gradient-text">AI/ML Platform</span>
+            </h2>
+            <p className="text-zinc-600 text-sm">10 dedicated pages covering everything from learning to building to interviewing</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+            {PLATFORM_LINKS.map((l) => (
+              <Link key={l.href} href={l.href}
+                className="group glass rounded-xl p-4 hover:-translate-y-0.5 transition-all"
+                style={{ transitionDuration: "160ms", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{l.icon}</span>
+                  <span className="text-xs font-bold text-white">{l.label}</span>
                 </div>
-                <p className="text-zinc-400 text-sm mb-1">ML Engineer · NLP & LLM Enthusiast · BSc CSE</p>
-                <p className="text-zinc-600 text-xs mb-4 leading-relaxed max-w-xl">
-                  Building AI products that matter. Focused on NLP, LLMs, RAG systems, and making ML accessible
-                  through interactive tools like AIZen Tutor.
-                </p>
-
-                {/* Skills */}
-                <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start mb-5">
-                  {SKILLS.map((s) => (
-                    <span key={s.name}
-                      className="text-xs px-2.5 py-1 rounded-full flex items-center gap-1"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#a1a1aa" }}>
-                      <span className="text-sm">{s.icon}</span>
-                      {s.name}
-                    </span>
-                  ))}
+                <p className="text-[11px] text-zinc-600 leading-relaxed">{l.desc}</p>
+                <div className="mt-2 flex items-center gap-1 text-[10px] font-medium transition-colors"
+                  style={{ color: l.color }}>
+                  Explore →
                 </div>
-
-                {/* Links */}
-                <div className="flex gap-3 justify-center sm:justify-start">
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white transition-colors px-3 py-1.5 rounded-lg"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                    </svg>
-                    GitHub
-                  </a>
-                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white transition-colors px-3 py-1.5 rounded-lg"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
-                    LinkedIn
-                  </a>
-                  <Link href="/learn"
-                    className="flex items-center gap-1.5 text-xs text-white px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-                    ⚡ Try AIZen Tutor
-                  </Link>
-                </div>
-              </div>
-            </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { LESSONS, CATEGORIES } from "@/data/curriculum"
+import Nav from "@/components/Nav"
 import {
   getCompleted, getXP, getLevel, getLevelProgress, getNextLevel,
   getStreak, getEarnedBadges, getCategoryProgress,
@@ -190,22 +191,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
 
-      {/* Nav */}
-      <header className="sticky top-0 z-10 border-b px-4 sm:px-6 py-3 flex items-center gap-3"
-        style={{ background: "rgba(12,12,20,0.85)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>AZ</div>
-          <span className="font-semibold text-white text-sm hidden sm:inline">AIZen Tutor</span>
-        </Link>
-        <span className="text-zinc-700 hidden sm:inline">/</span>
-        <span className="text-zinc-400 text-sm flex-1">Dashboard</span>
-        <Link href="/learn"
-          className="text-xs font-medium px-3.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-80 shrink-0"
-          style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
-          Continue Learning
-        </Link>
-      </header>
+      <Nav />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 

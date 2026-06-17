@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { QUIZZES } from "@/data/quizzes"
+import { ALL_QUIZZES as QUIZZES } from "@/data/quizzes-all"
 import { saveQuizResult, getQuizResult, XP_PER_CORRECT, type QuizResult } from "@/lib/progress"
 
 interface Props {
