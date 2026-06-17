@@ -205,3 +205,134 @@ export function getActivity(): Record<string, number> {
   try { return JSON.parse(localStorage.getItem(ACTIVITY_KEY) ?? "{}") }
   catch { return {} }
 }
+
+// ─── MongoDB sync ────────────────────────────────────────────────────────────
+
+const USER_ID_KEY = "aizen_user_id"
+
+export function getUserId(): string {
+  if (typeof window === "undefined") return ""
+  let id = localStorage.getItem(USER_ID_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(USER_ID_KEY, id)
+  }
+  return id
+}
+
+// Get Firebase ID token if user is signed in (dynamic import avoids SSR issues)
+async function getFirebaseToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null
+  try {
+    const { auth } = await import("./firebase")
+    return auth?.currentUser ? auth.currentUser.getIdToken() : null
+  } catch {
+    return null
+  }
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  const token = await getFirebaseToken()
+  if (token) headers["Authorization"] = `Bearer ${token}`
+  return headers
+}
+
+export function getAllProgress() {
+  return {
+    completed:   getCompleted(),
+    streak:      getStreak(),
+    lastDay:     localStorage.getItem(LAST_DAY_KEY) ?? "",
+    quizXP:      getQuizXP(),
+    quizResults: getAllQuizResults(),
+    bookmarks:   getBookmarks(),
+    notes:       getAllNotes(),
+    activity:    getActivity(),
+  }
+}
+
+export async function syncToMongoDB(): Promise<void> {
+  if (typeof window === "undefined") return
+  try {
+    const headers = await authHeaders()
+    // For anonymous users include the local UUID in the body
+    const token = headers["Authorization"]
+    const body = token
+      ? { data: getAllProgress() }
+      : { userId: getUserId(), data: getAllProgress() }
+    await fetch("/api/progress", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // silently fail — localStorage is still the source of truth
+  }
+}
+
+export async function loadFromMongoDB(): Promise<void> {
+  if (typeof window === "undefined") return
+  try {
+    const headers = await authHeaders()
+    const token = headers["Authorization"]
+    const url = token
+      ? "/api/progress"
+      : `/api/progress?userId=${getUserId()}`
+    const res = await fetch(url, { headers })
+    if (!res.ok) return
+    const doc = await res.json()
+    if (!doc) return
+
+    // Merge: take the union for arrays, merge objects, keep the higher numeric value
+    const localCompleted = getCompleted()
+    const merged = [...new Set([...localCompleted, ...(doc.completed ?? [])])]
+    localStorage.setItem(COMPLETED_KEY, JSON.stringify(merged))
+
+    const localStreak = getStreak()
+    if ((doc.streak ?? 0) > localStreak) {
+      localStorage.setItem(STREAK_KEY, String(doc.streak))
+      localStorage.setItem(LAST_DAY_KEY, doc.lastDay ?? "")
+    }
+
+    const localQuizXP = getQuizXP()
+    if ((doc.quizXP ?? 0) > localQuizXP) {
+      localStorage.setItem(QUIZ_XP_KEY, String(doc.quizXP))
+    }
+
+    // Merge quiz results — keep results that don't exist locally
+    if (doc.quizResults) {
+      for (const [lessonId, result] of Object.entries(doc.quizResults)) {
+        if (!getQuizResult(lessonId)) {
+          localStorage.setItem(`aizen_quiz_${lessonId}`, JSON.stringify(result))
+        }
+      }
+    }
+
+    // Merge bookmarks
+    if (doc.bookmarks?.length) {
+      const localBookmarks = getBookmarks()
+      const mergedBookmarks = [...new Set([...localBookmarks, ...doc.bookmarks])]
+      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(mergedBookmarks))
+    }
+
+    // Merge notes — don't overwrite local edits
+    if (doc.notes) {
+      for (const [lessonId, note] of Object.entries(doc.notes)) {
+        if (!getNote(lessonId) && note) {
+          localStorage.setItem(`aizen_note_${lessonId}`, note as string)
+        }
+      }
+    }
+
+    // Merge activity — sum up counts per day
+    if (doc.activity) {
+      const localActivity = getActivity()
+      for (const [date, count] of Object.entries(doc.activity)) {
+        localActivity[date] = Math.max(localActivity[date] ?? 0, count as number)
+      }
+      localStorage.setItem(ACTIVITY_KEY, JSON.stringify(localActivity))
+    }
+  } catch {
+    // silently fail — localStorage is still the source of truth
+  }
+}

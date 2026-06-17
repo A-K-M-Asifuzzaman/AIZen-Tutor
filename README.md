@@ -1,6 +1,6 @@
 # AIZen Tutor
 
-**A gamified AI/ML learning platform.** 62 in-depth lessons, 5 quizzes per lesson, an AI tutor powered by Groq, a visual skill tree, ML project showcase, foundational research papers, interview prep hub, daily challenges, and a document RAG tutor — all in one dark-themed Next.js app. No account required. Free forever.
+**A gamified AI/ML learning platform.** 62 in-depth lessons, 5 quizzes per lesson, an AI tutor powered by Groq, Firebase authentication, cross-device progress sync via MongoDB, a visual skill tree, ML project showcase, foundational research papers, interview prep hub, daily challenges, and a document RAG tutor — all in one dark-themed Next.js app.
 
 ---
 
@@ -8,7 +8,7 @@
 
 **[https://ai-zen-tutor.vercel.app](https://ai-zen-tutor.vercel.app)**
 
-Deployed on Vercel. All 11 pages, the AI Tutor (Groq Llama 3.3 70B), and the RAG Tutor are fully live and operational.
+Deployed on Vercel. All 11 pages, the AI Tutor (Groq Llama 3.3 70B), Firebase Auth, and the RAG Tutor are fully live and operational.
 
 ---
 
@@ -27,10 +27,19 @@ Deployed on Vercel. All 11 pages, the AI Tutor (Groq Llama 3.3 70B), and the RAG
 | `/daily` | Rotating daily challenge (ML + coding + interview) |
 | `/rag-tutor` | Upload a document, ask questions via RAG |
 | `/about` | Creator profile and portfolio |
+| `/login` | Sign in — email/password or Google |
+| `/register` | Create account — email/password or Google |
 
 ---
 
 ## Features
+
+### Authentication (Firebase)
+- **Email/Password** sign up and sign in
+- **Google OAuth** — one-click sign in via Firebase
+- **No account required** — app works fully as a guest; sign in to unlock cross-device sync
+- User avatar and name displayed in the Nav when signed in
+- Sign out from the Nav dropdown (desktop) or mobile drawer
 
 ### Learning System
 - **62 lessons** across 8 categories — from linear regression to diffusion models
@@ -51,12 +60,14 @@ Deployed on Vercel. All 11 pages, the AI Tutor (Groq Llama 3.3 70B), and the RAG
 - **Activity heatmap** — 16-week GitHub-style contribution grid
 - **Skill radar chart** — 8-axis spider/web chart showing category progress
 - **Category progress rings** — SVG circle progress per category
-- All progress stored in `localStorage` — no backend, no account
+- Progress stored in `localStorage` (instant, no latency) and synced to MongoDB (cross-device)
 
 ### Pages
 | Page | URL |
 |---|---|
 | Home / Landing | `/` |
+| Sign In | `/login` |
+| Create Account | `/register` |
 | Learn (62 lessons) | `/learn` |
 | Progress Dashboard | `/dashboard` |
 | Learning Roadmap | `/roadmap` |
@@ -129,10 +140,12 @@ Tree path: **Python & Math → Machine Learning → Deep Learning → NLP → LL
 | Styling | Tailwind CSS 3.4 + custom CSS variables |
 | Animations | GSAP 3.15 + ScrollTrigger |
 | AI / LLM | Groq SDK (`groq-sdk`) — Llama 3.3 70B Versatile |
+| Authentication | Firebase Authentication (Email/Password + Google OAuth) |
+| Database | MongoDB Atlas — progress persistence |
+| Auth Token Verification | Firebase Admin SDK (server-side) |
 | Rendering | Static generation for all pages + Edge runtime for `/api/chat` |
 | State | React `useState` / `useEffect` — no external state library |
-| Persistence | `localStorage` — no database, no backend |
-| Runtime | Node.js (Next.js dev server) / Edge runtime (API route) |
+| Progress Cache | `localStorage` (primary, instant) + MongoDB (sync, cross-device) |
 
 ---
 
@@ -143,8 +156,12 @@ Ml Tutor/
 └── frontend/
     ├── app/
     │   ├── page.tsx              # Home / landing page
-    │   ├── layout.tsx            # Root layout (dark theme, fonts)
+    │   ├── layout.tsx            # Root layout (AuthProvider + ProgressSync)
     │   ├── globals.css           # CSS variables, animations, utilities
+    │   ├── login/
+    │   │   └── page.tsx          # Sign in (email/password + Google)
+    │   ├── register/
+    │   │   └── page.tsx          # Create account (email/password + Google)
     │   ├── learn/
     │   │   └── page.tsx          # Main learning page (sidebar + lesson + panels)
     │   ├── dashboard/
@@ -166,10 +183,14 @@ Ml Tutor/
     │   ├── about/
     │   │   └── page.tsx          # Creator profile
     │   └── api/
-    │       └── chat/
-    │           └── route.ts      # Groq streaming edge API
+    │       ├── chat/
+    │       │   └── route.ts      # Groq streaming edge API
+    │       └── progress/
+    │           └── route.ts      # MongoDB progress sync (GET + POST)
     ├── components/
-    │   ├── Nav.tsx               # Shared sticky nav (mobile hamburger)
+    │   ├── Nav.tsx               # Shared sticky nav with auth state (avatar, sign out)
+    │   ├── AuthProvider.tsx      # Firebase auth context + useAuth() hook
+    │   ├── ProgressSync.tsx      # Auto-syncs localStorage → MongoDB on interval
     │   ├── AiTutor.tsx           # Streaming AI tutor panel
     │   ├── QuizModal.tsx         # Post-lesson quiz modal
     │   ├── NotesPanel.tsx        # Per-lesson notes panel
@@ -192,8 +213,12 @@ Ml Tutor/
     │       ├── mlops.ts
     │       └── interview.ts
     ├── lib/
-    │   └── progress.ts           # All localStorage logic (XP, streaks, quizzes, bookmarks, notes)
-    ├── .env.local                # GROQ_API_KEY (gitignored)
+    │   ├── progress.ts           # XP, streaks, quizzes, bookmarks, notes + MongoDB sync
+    │   ├── firebase.ts           # Firebase client SDK (auth)
+    │   ├── firebase-admin.ts     # Firebase Admin SDK (server-side token verification)
+    │   └── mongodb.ts            # MongoDB connection pooling
+    ├── types/                    # TypeScript declaration files
+    ├── .env.local                # API keys (gitignored)
     ├── package.json
     ├── tailwind.config.ts
     └── tsconfig.json
@@ -258,16 +283,15 @@ Maximum XP possible: 62 × 100 + 310 × 25 = **13,950 XP** (enough to reach Mast
 ### Prerequisites
 
 - Node.js 18+
-- A free [Groq](https://console.groq.com) API key (for the AI Tutor and RAG Tutor)
+- A free [Groq](https://console.groq.com) API key
+- A [MongoDB Atlas](https://cloud.mongodb.com) free cluster (M0)
+- A [Firebase](https://console.firebase.google.com) project with Authentication enabled
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone <your-repo-url>
 cd "Ml Tutor/frontend"
-
-# Install dependencies
 npm install
 ```
 
@@ -276,12 +300,33 @@ npm install
 Create `frontend/.env.local`:
 
 ```env
+# AI
 GROQ_API_KEY=your_groq_api_key_here
+
+# Database
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.xxx.mongodb.net/AIZen?appName=Cluster0
+
+# Firebase — Client (NEXT_PUBLIC = safe to expose in browser)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Firebase — Admin (server-side only, never exposed to browser)
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
 ```
 
-Get a free API key at [console.groq.com](https://console.groq.com). The free tier is sufficient — the AI Tutor uses `llama-3.3-70b-versatile`.
+### Firebase Setup
 
-> **Security note:** The API key is only used server-side in the Edge API route (`/api/chat`). It is never sent to the browser and is gitignored.
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) → create a project
+2. **Authentication** → **Sign-in method** → enable **Email/Password** and **Google**
+3. **Project Settings** → **General** → **Your apps** → click `</>` → copy the `firebaseConfig` values into the `NEXT_PUBLIC_*` env vars
+4. **Project Settings** → **Service accounts** → **Generate new private key** → copy `project_id`, `client_email`, and `private_key` into the `FIREBASE_*` env vars
+5. **Authentication** → **Settings** → **Authorized domains** → add your production domain
 
 ### Run Development Server
 
@@ -297,6 +342,28 @@ Open [http://localhost:3000](http://localhost:3000).
 npm run build
 npm run start
 ```
+
+---
+
+## Authentication — How It Works
+
+Firebase Authentication handles all identity on the client side. The server verifies tokens using the Firebase Admin SDK.
+
+```
+User signs in (email/password or Google)
+    ↓
+Firebase issues a signed JWT (ID token)
+    ↓
+Client attaches token in Authorization: Bearer <token> header
+    ↓
+/api/progress verifies token with Firebase Admin SDK
+    ↓
+Returns progress document keyed to Firebase UID
+```
+
+**Guest mode:** If the user is not signed in, progress uses an anonymous UUID stored in `localStorage`. Progress still syncs to MongoDB — under the UUID key instead of a Firebase UID. Signing in on a new device retrieves the Firebase-keyed progress.
+
+**Nav:** When signed in, the Nav shows the user's avatar (photo or initials), name, and a dropdown with sign-out. When not signed in, "Sign In" and "Sign Up Free" buttons appear.
 
 ---
 
@@ -334,16 +401,14 @@ Edge runtime endpoint for streaming LLM responses.
 **Request body:**
 ```json
 {
-  "messages": [
-    { "role": "user", "content": "Explain gradient descent" }
-  ],
+  "messages": [{ "role": "user", "content": "Explain gradient descent" }],
   "lessonTitle": "Gradient Descent",
   "lessonCategory": "Machine Learning",
   "systemOverride": "Optional: replaces the default system prompt (used by RAG Tutor)"
 }
 ```
 
-**Response:** `text/plain` streaming body. Chunks are plain text deltas, concatenated by the client.
+**Response:** `text/plain` streaming body. Chunks are plain text deltas.
 
 **Runtime:** Edge (Vercel Edge Functions compatible)
 
@@ -351,22 +416,82 @@ Edge runtime endpoint for streaming LLM responses.
 
 ---
 
+### `GET /api/progress?userId=xxx`
+
+Fetch a user's progress document from MongoDB.
+
+- If request includes `Authorization: Bearer <firebase-token>`, the Firebase UID is used (ignores `userId` param)
+- Otherwise falls back to the `userId` query param (anonymous UUID)
+
+### `POST /api/progress`
+
+Upsert a user's full progress document.
+
+**Request body:**
+```json
+{ "userId": "optional-uuid-for-guests", "data": { ...progressFields } }
+```
+
+- Authenticated requests: user ID resolved from Firebase token in Authorization header
+- Guest requests: user ID from `userId` in body
+
+---
+
 ## Progress Persistence
 
-All user progress is stored in the browser's `localStorage` — no account, no database, no server.
+Progress uses a **hybrid localStorage + MongoDB** architecture:
+
+- **localStorage** — primary store, instant reads/writes, no network latency
+- **MongoDB** — background sync, cross-device persistence, survives browser clears
+
+### How sync works
+
+```
+User action (complete lesson, quiz, bookmark, note)
+    ↓
+localStorage update (immediate)
+    ↓ async, non-blocking
+ProgressSync: syncs every 60s + on tab close
+    ↓
+POST /api/progress (with Firebase token if signed in)
+    ↓
+MongoDB AIZen.progress collection
+```
+
+On first page load, `ProgressSync` fetches from MongoDB and merges into localStorage — so returning users recover their full history automatically.
+
+### localStorage keys
 
 | Key | Data |
 |---|---|
+| `aizen_user_id` | Anonymous UUID (used when not signed in) |
 | `aizen_completed_v2` | Array of completed lesson IDs |
 | `aizen_streak_v2` | Current streak count |
 | `aizen_last_day_v2` | Last active day (for streak calculation) |
 | `aizen_quiz_xp` | Total quiz XP earned |
-| `aizen_quiz_results` | Map of lessonId → quiz result (score, correct, total) |
+| `aizen_quiz_<lessonId>` | Quiz result per lesson (score, correct, total) |
 | `aizen_bookmarks` | Array of bookmarked lesson IDs |
-| `aizen_notes` | Map of lessonId → note text |
-| `aizen_activity` | Map of date string → activity count (for heatmap) |
+| `aizen_note_<lessonId>` | Note text per lesson |
+| `aizen_activity` | Map of `"YYYY-MM-DD"` → activity count (heatmap) |
 
-Progress resets if the user clears their browser storage. For persistent cross-device progress, a backend (Supabase, PlanetScale) could be added by replacing the `progress.ts` functions.
+### MongoDB schema
+
+One document per user in the `AIZen.progress` collection:
+
+```typescript
+{
+  _id:         string,        // Firebase UID (signed in) or anonymous UUID (guest)
+  completed:   string[],
+  streak:      number,
+  lastDay:     string,
+  quizXP:      number,
+  quizResults: Record<string, { score: number, correct: number, total: number }>,
+  bookmarks:   string[],
+  notes:       Record<string, string>,
+  activity:    Record<string, number>,  // "2026-06-17" → count
+  updatedAt:   Date,
+}
+```
 
 ---
 
@@ -390,28 +515,6 @@ Progress resets if the user clears their browser storage. For persistent cross-d
 | 3/5 | B |
 | ≤2/5 | C |
 
-**Quiz data structure** (`data/quizzes.ts` + `data/quizzes-extra.ts`):
-```typescript
-interface QuizQuestion {
-  q: string
-  options: [string, string, string, string]
-  answer: number          // index of correct option (0–3)
-  explanation: string
-}
-
-const QUIZZES: Record<string, QuizQuestion[]> = {
-  "gradient-descent": [
-    {
-      q: "What does gradient descent minimize?",
-      options: ["Model accuracy", "Number of parameters", "A loss/cost function", "The learning rate"],
-      answer: 2,
-      explanation: "Gradient descent iteratively updates parameters to minimize the loss function."
-    },
-    // ... 4 more questions
-  ]
-}
-```
-
 ---
 
 ## Mobile Responsiveness
@@ -420,7 +523,7 @@ Every page is fully responsive with Tailwind CSS breakpoints:
 
 | Component | Mobile | Desktop |
 |---|---|---|
-| Nav | Hamburger → 2-column grid drawer | Horizontal link bar |
+| Nav | Hamburger → 2-column grid drawer + auth row | Horizontal link bar + avatar dropdown |
 | Learn sidebar | Hidden — opens as overlay | Fixed left panel (w-64) |
 | AI Tutor | Bottom sheet (70vh) | Right panel (w-72/w-80) |
 | Notes panel | Bottom sheet (h-96) | Right panel (w-64/w-72) |
@@ -435,49 +538,43 @@ Every page is fully responsive with Tailwind CSS breakpoints:
 
 ### Live Deployment
 
-The platform is fully live at **[https://ai-zen-tutor.vercel.app](https://ai-zen-tutor.vercel.app)** — deployed on Vercel with all features operational:
+The platform is fully live at **[https://ai-zen-tutor.vercel.app](https://ai-zen-tutor.vercel.app)**:
 
 | Feature | Status |
 |---|---|
-| All 11 pages | ✅ Live |
+| All 13 pages (incl. login + register) | ✅ Live |
+| Firebase Auth (email/password + Google) | ✅ Live |
 | AI Tutor (Groq Llama 3.3 70B) | ✅ Live |
 | RAG Document Tutor | ✅ Live |
+| MongoDB progress sync | ✅ Live |
 | Quizzes, XP, Streaks, Badges | ✅ Live |
 | Daily Challenge | ✅ Live |
 
 ### Deploy Your Own
 
 ```bash
-# From the frontend directory
 npx vercel --prod
 ```
 
-Or connect your GitHub repository to Vercel via the dashboard.
+**Environment variables to add in Vercel → Settings → Environment Variables:**
 
-**Required environment variable:**
+| Variable | Description |
+|---|---|
+| `GROQ_API_KEY` | Groq API key for AI Tutor |
+| `MONGODB_URI` | MongoDB Atlas connection string |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase client config |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase client config |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase client config |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase client config |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase client config |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase client config |
+| `FIREBASE_PROJECT_ID` | Firebase Admin (server-side) |
+| `FIREBASE_CLIENT_EMAIL` | Firebase Admin service account email |
+| `FIREBASE_PRIVATE_KEY` | Firebase Admin private key (paste with quotes) |
 
-In Vercel dashboard → **Settings** → **Environment Variables** → add:
+> After adding env vars, go to **Deployments** → **Redeploy** for them to take effect.
 
-| Name | Value | Environments |
-|---|---|---|
-| `GROQ_API_KEY` | your Groq API key | Production, Preview, Development |
-
-Get a free key at [console.groq.com](https://console.groq.com). After adding the key, go to **Deployments** → redeploy for it to take effect.
-
-The `/api/chat` route uses `export const runtime = "edge"` — it automatically deploys as a Vercel Edge Function with global low latency.
-
-**All other pages are statically generated** — no server required for the UI, only for the AI chat endpoint.
-
-### Other Platforms
-
-Any platform that supports Next.js App Router works (Netlify, Railway, Render, self-hosted):
-
-```bash
-npm run build
-npm run start   # runs on port 3000
-```
-
-Set `GROQ_API_KEY` as an environment variable on your platform.
+The `/api/chat` route uses `export const runtime = "edge"` — deployed as a Vercel Edge Function with global low latency. All other pages are statically generated.
 
 ---
 
@@ -485,33 +582,11 @@ Set `GROQ_API_KEY` as an environment variable on your platform.
 
 ### Adding a New Lesson
 
-1. Add the lesson metadata to `data/curriculum.ts`:
-```typescript
-{
-  id: "my-new-lesson",
-  title: "My New Lesson",
-  category: "Machine Learning",
-  difficulty: "Intermediate",
-  duration: "20 min",
-  xp: 100,
-  description: "...",
-  tags: ["tag1", "tag2"],
-}
-```
-
-2. Add the lesson content to the appropriate `data/lessons/*.ts` file:
-```typescript
-"my-new-lesson": {
-  content: `...markdown-like content...`,
-  code: `...python code...`,
-}
-```
-
-3. Add 5 quiz questions to `data/quizzes.ts` (3) and `data/quizzes-extra.ts` (2) using the lesson ID as the key.
+1. Add metadata to `data/curriculum.ts`
+2. Add content to the appropriate `data/lessons/*.ts` file
+3. Add 5 quiz questions to `data/quizzes.ts` (3) and `data/quizzes-extra.ts` (2)
 
 ### Adding a New Page
-
-Create `app/your-page/page.tsx`. Import `Nav` from `@/components/Nav` for the shared navigation:
 
 ```typescript
 import Nav from "@/components/Nav"
@@ -528,23 +603,23 @@ export default function YourPage() {
 }
 ```
 
-### Groq API — Important Implementation Note
+### Groq API — Important Note
 
-The Groq client **must be instantiated inside the request handler**, not at module level:
+The Groq client must be instantiated **inside the request handler**, not at module level — Edge runtime evaluates env vars lazily:
 
 ```typescript
-// ✅ Correct — inside handler
+// ✅ Correct
 export async function POST(req: NextRequest) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-  // ...
 }
 
-// ❌ Wrong — module level causes build failure
+// ❌ Wrong — causes build failure on Edge runtime
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-export async function POST(req: NextRequest) { ... }
 ```
 
-This is because the Edge runtime evaluates environment variables lazily; accessing them at module load time during the build causes a `GROQ_API_KEY is missing or empty` error.
+### Firebase Private Key in Vercel
+
+When adding `FIREBASE_PRIVATE_KEY` to Vercel, paste the full key **including** the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines, wrapped in double quotes. Vercel preserves newlines in multiline env vars correctly.
 
 ---
 
@@ -552,34 +627,23 @@ This is because the Edge runtime evaluates environment variables lazily; accessi
 
 ### Changing the AI Model
 
-In `app/api/chat/route.ts`, change the model string:
-
+In `app/api/chat/route.ts`:
 ```typescript
-const stream = await groq.chat.completions.create({
-  model: "llama-3.3-70b-versatile",  // change this
-  // ...
-})
+model: "llama-3.3-70b-versatile"  // change to any Groq model
 ```
-
 Other free Groq models: `llama-3.1-8b-instant` (faster), `mixtral-8x7b-32768` (longer context).
 
 ### Changing XP Values
 
 In `lib/progress.ts`:
-
 ```typescript
-export const XP_PER_LESSON  = 100  // XP for completing a lesson
-export const XP_PER_CORRECT = 25   // XP per correct quiz answer
+export const XP_PER_LESSON  = 100
+export const XP_PER_CORRECT = 25
 ```
-
-### Adding New Quiz Questions
-
-Edit `data/quizzes-extra.ts` and add/modify entries using the lesson ID as the key. The merged output (`data/quizzes-all.ts`) is what the `QuizModal` uses.
 
 ### Theming
 
-CSS variables are defined in `app/globals.css`:
-
+CSS variables in `app/globals.css`:
 ```css
 :root {
   --bg:      #05050a;
@@ -587,8 +651,6 @@ CSS variables are defined in `app/globals.css`:
   --border:  rgba(255,255,255,0.07);
 }
 ```
-
-Change these to retheme the entire platform.
 
 ---
 
@@ -598,4 +660,4 @@ MIT — free to use, modify, and distribute.
 
 ---
 
-*Built with Next.js, Tailwind CSS, GSAP, and Groq.*
+*Built with Next.js, Firebase, MongoDB, Tailwind CSS, GSAP, and Groq.*
