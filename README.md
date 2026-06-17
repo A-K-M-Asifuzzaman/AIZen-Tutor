@@ -6,11 +6,9 @@
 
 ## Live Demo
 
-```
-http://localhost:3000
-```
+**[https://ai-zen-tutor.vercel.app](https://ai-zen-tutor.vercel.app)**
 
-> Deploy to Vercel by adding `GROQ_API_KEY` as an environment variable. See [Deployment](#deployment).
+Deployed on Vercel. All 11 pages, the AI Tutor (Groq Llama 3.3 70B), and the RAG Tutor are fully live and operational.
 
 ---
 
@@ -435,7 +433,19 @@ Every page is fully responsive with Tailwind CSS breakpoints:
 
 ## Deployment
 
-### Vercel (Recommended)
+### Live Deployment
+
+The platform is fully live at **[https://ai-zen-tutor.vercel.app](https://ai-zen-tutor.vercel.app)** — deployed on Vercel with all features operational:
+
+| Feature | Status |
+|---|---|
+| All 11 pages | ✅ Live |
+| AI Tutor (Groq Llama 3.3 70B) | ✅ Live |
+| RAG Document Tutor | ✅ Live |
+| Quizzes, XP, Streaks, Badges | ✅ Live |
+| Daily Challenge | ✅ Live |
+
+### Deploy Your Own
 
 ```bash
 # From the frontend directory
@@ -446,12 +456,15 @@ Or connect your GitHub repository to Vercel via the dashboard.
 
 **Required environment variable:**
 
-In Vercel dashboard → Settings → Environment Variables:
-```
-GROQ_API_KEY = your_groq_api_key_here
-```
+In Vercel dashboard → **Settings** → **Environment Variables** → add:
 
-The `/api/chat` route uses `export const runtime = "edge"` — it automatically deploys as a Vercel Edge Function.
+| Name | Value | Environments |
+|---|---|---|
+| `GROQ_API_KEY` | your Groq API key | Production, Preview, Development |
+
+Get a free key at [console.groq.com](https://console.groq.com). After adding the key, go to **Deployments** → redeploy for it to take effect.
+
+The `/api/chat` route uses `export const runtime = "edge"` — it automatically deploys as a Vercel Edge Function with global low latency.
 
 **All other pages are statically generated** — no server required for the UI, only for the AI chat endpoint.
 
