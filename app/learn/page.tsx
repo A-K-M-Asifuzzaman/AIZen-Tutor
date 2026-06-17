@@ -13,6 +13,7 @@ import LearnSidebar from "@/components/LearnSidebar"
 import LessonView from "@/components/LessonView"
 import QuizModal from "@/components/QuizModal"
 import NotesPanel from "@/components/NotesPanel"
+import AiTutor from "@/components/AiTutor"
 
 export default function LearnPage() {
   const [activeLessonId, setActiveLessonId] = useState(LESSONS[0].id)
@@ -26,6 +27,7 @@ export default function LearnPage() {
   const [justLeveledUp, setJustLeveledUp]   = useState(false)
   const [showQuiz, setShowQuiz]             = useState(false)
   const [showNotes, setShowNotes]           = useState(false)
+  const [showAiTutor, setShowAiTutor]       = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -42,9 +44,10 @@ export default function LearnPage() {
     return () => window.removeEventListener("resize", check)
   }, [])
 
-  // Close notes when switching lessons
+  // Close panels when switching lessons
   useEffect(() => {
     setShowNotes(false)
+    setShowAiTutor(false)
     if (!contentRef.current) return
     gsap.fromTo(contentRef.current,
       { opacity: 0, y: 12 },
@@ -267,8 +270,18 @@ export default function LearnPage() {
             <span className="text-orange-400 font-semibold">{streak}</span>
           </div>
 
+          {/* AI Tutor toggle */}
+          <button onClick={() => { setShowAiTutor((v) => !v); setShowNotes(false) }}
+            title="AI Tutor — ask questions about this lesson"
+            className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${showAiTutor ? "text-emerald-400" : "text-zinc-500 hover:text-white hover:bg-white/5"}`}
+            style={showAiTutor ? { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)" } : {}}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </button>
+
           {/* Notes toggle */}
-          <button onClick={() => setShowNotes((v) => !v)}
+          <button onClick={() => { setShowNotes((v) => !v); setShowAiTutor(false) }}
             title="Toggle notes"
             className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${showNotes ? "text-violet-400" : "text-zinc-500 hover:text-white hover:bg-white/5"}`}
             style={showNotes ? { background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.25)" } : {}}>
@@ -316,8 +329,19 @@ export default function LearnPage() {
             </div>
           </main>
 
-          {/* Notes panel */}
-          {showNotes && activeLesson && (
+          {/* AI Tutor panel (desktop) */}
+          {showAiTutor && activeLesson && (
+            <aside className="shrink-0 w-72 sm:w-80 hidden sm:flex flex-col overflow-hidden">
+              <AiTutor
+                lessonTitle={activeLesson.title}
+                lessonCategory={activeLesson.category}
+                onClose={() => setShowAiTutor(false)}
+              />
+            </aside>
+          )}
+
+          {/* Notes panel (desktop) */}
+          {showNotes && !showAiTutor && activeLesson && (
             <aside className="shrink-0 w-64 sm:w-72 hidden sm:flex flex-col overflow-hidden">
               <NotesPanel
                 lessonId={activeLessonId}
@@ -336,6 +360,22 @@ export default function LearnPage() {
           lessonTitle={activeLesson.title}
           onClose={handleQuizClose}
         />
+      )}
+
+      {/* ─── Mobile AI Tutor (bottom sheet) ─── */}
+      {showAiTutor && isMobile && activeLesson && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: "rgba(0,0,0,0.65)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAiTutor(false) }}>
+          <div className="h-[70vh] rounded-t-2xl overflow-hidden flex flex-col"
+            style={{ background: "var(--surface)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <AiTutor
+              lessonTitle={activeLesson.title}
+              lessonCategory={activeLesson.category}
+              onClose={() => setShowAiTutor(false)}
+            />
+          </div>
+        </div>
       )}
 
       {/* ─── Mobile Notes (bottom sheet) ─── */}

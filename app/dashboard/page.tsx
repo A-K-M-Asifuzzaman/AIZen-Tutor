@@ -20,6 +20,73 @@ const CAT_COLOR: Record<string, string> = {
   "Interview Prep":     "#f87171",
 }
 
+function RadarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const size   = 220
+  const cx     = size / 2
+  const cy     = size / 2
+  const radius = 80
+  const n      = data.length
+  const levels = [0.25, 0.5, 0.75, 1.0]
+
+  const angle = (i: number) => (i / n) * 2 * Math.PI - Math.PI / 2
+
+  const point = (i: number, r: number) => ({
+    x: cx + r * Math.cos(angle(i)),
+    y: cy + r * Math.sin(angle(i)),
+  })
+
+  const gridPoly = (frac: number) =>
+    data.map((_, i) => {
+      const p = point(i, radius * frac)
+      return `${p.x},${p.y}`
+    }).join(" ")
+
+  const dataPoly = data.map((d, i) => {
+    const p = point(i, radius * (d.value / 100))
+    return `${p.x},${p.y}`
+  }).join(" ")
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[220px] mx-auto">
+      {/* Grid levels */}
+      {levels.map((frac) => (
+        <polygon key={frac} points={gridPoly(frac)} fill="none"
+          stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+      ))}
+
+      {/* Spokes */}
+      {data.map((_, i) => {
+        const p = point(i, radius)
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+      })}
+
+      {/* Data polygon */}
+      <polygon points={dataPoly} fill="rgba(124,58,237,0.15)" stroke="#7c3aed" strokeWidth={1.5} />
+
+      {/* Data dots */}
+      {data.map((d, i) => {
+        const p = point(i, radius * (d.value / 100))
+        return (
+          <circle key={i} cx={p.x} cy={p.y} r={3} fill={d.color} />
+        )
+      })}
+
+      {/* Labels */}
+      {data.map((d, i) => {
+        const labelR = radius + 22
+        const p = point(i, labelR)
+        const anchor = p.x < cx - 5 ? "end" : p.x > cx + 5 ? "start" : "middle"
+        return (
+          <text key={i} x={p.x} y={p.y} textAnchor={anchor}
+            dominantBaseline="middle" fontSize={8} fill={d.value > 0 ? d.color : "#52525b"}>
+            {d.label.split(" ")[0]}
+          </text>
+        )
+      })}
+    </svg>
+  )
+}
+
 function Ring({ pct, color, size = 72, stroke = 7 }: { pct: number; color: string; size?: number; stroke?: number }) {
   const r   = (size - stroke) / 2
   const c   = 2 * Math.PI * r
@@ -235,6 +302,34 @@ export default function DashboardPage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+
+        {/* Skill radar */}
+        <div className="rounded-xl p-5 sm:p-6"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-base font-bold text-white mb-5">Skill Radar</h2>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="w-full sm:w-56 shrink-0">
+              <RadarChart data={CATEGORIES.map((cat) => ({
+                label: cat,
+                value: getCategoryProgress(cat, completed, LESSONS).pct,
+                color: CAT_COLOR[cat] ?? "#a78bfa",
+              }))} />
+            </div>
+            <div className="flex-1 grid grid-cols-2 gap-2 w-full">
+              {CATEGORIES.map((cat) => {
+                const { pct } = getCategoryProgress(cat, completed, LESSONS)
+                const color = CAT_COLOR[cat] ?? "#a78bfa"
+                return (
+                  <div key={cat} className="flex items-center gap-2 text-xs">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                    <span className="text-zinc-500 truncate flex-1">{cat.split(" ")[0]}</span>
+                    <span className="font-semibold shrink-0" style={{ color }}>{pct}%</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
