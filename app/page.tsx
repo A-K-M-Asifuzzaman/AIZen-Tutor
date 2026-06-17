@@ -49,13 +49,17 @@ export default function LandingPage() {
 
     const ctx = gsap.context(() => {
       // ── Hero sequence ──
+      // Pre-set to invisible so there's no flash before the timeline runs
+      gsap.set(["#hero-badge","#hero-h1","#hero-sub","#hero-ctas","#hero-stats","#hero-preview"],
+        { opacity: 0 })
+
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } })
-      tl.from("#hero-badge",   { opacity: 0, y: 10, duration: 0.45 })
-        .from("#hero-h1",      { opacity: 0, y: 28, duration: 0.6 }, "-=0.15")
-        .from("#hero-sub",     { opacity: 0, y: 18, duration: 0.5 }, "-=0.3")
-        .from("#hero-ctas",    { opacity: 0, y: 14, duration: 0.4 }, "-=0.25")
-        .from("#hero-stats",   { opacity: 0, y: 8,  duration: 0.4 }, "-=0.2")
-        .from("#hero-preview", { opacity: 0, x: 36, duration: 0.65, ease: "power2.out" }, "-=0.55")
+      tl.to("#hero-badge",   { opacity: 1, y: 0, duration: 0.45, startAt: { y: 10 } })
+        .to("#hero-h1",      { opacity: 1, y: 0, duration: 0.6,  startAt: { y: 28 } }, "-=0.15")
+        .to("#hero-sub",     { opacity: 1, y: 0, duration: 0.5,  startAt: { y: 18 } }, "-=0.3")
+        .to("#hero-ctas",    { opacity: 1, y: 0, duration: 0.4,  startAt: { y: 14 } }, "-=0.25")
+        .to("#hero-stats",   { opacity: 1, y: 0, duration: 0.4,  startAt: { y: 8  } }, "-=0.2")
+        .to("#hero-preview", { opacity: 1, x: 0, duration: 0.65, startAt: { x: 36 }, ease: "power2.out" }, "-=0.55")
 
       // ── Stats counter ──
       document.querySelectorAll<HTMLElement>(".stat-count").forEach((el) => {
@@ -63,38 +67,40 @@ export default function LandingPage() {
         const hasPlus = raw.endsWith("+")
         const target = parseInt(raw)
         const obj = { n: 0 }
-        gsap.to(obj, {
-          n: target,
-          duration: 1.6,
-          ease: "power2.out",
-          onUpdate() { el.textContent = Math.round(obj.n) + (hasPlus ? "+" : "") },
-          scrollTrigger: { trigger: el, start: "top 88%", once: true },
+        ScrollTrigger.create({
+          trigger: el,
+          start: "top 90%",
+          once: true,
+          onEnter: () => {
+            gsap.to(obj, {
+              n: target, duration: 1.6, ease: "power2.out",
+              onUpdate() { el.textContent = Math.round(obj.n) + (hasPlus ? "+" : "") },
+            })
+          },
         })
       })
 
-      // ── Feature cards stagger ──
-      gsap.from(".feat-card", {
-        opacity: 0, y: 22, duration: 0.45, stagger: 0.07, ease: "power2.out",
-        scrollTrigger: { trigger: "#features", start: "top 82%", once: true },
-      })
+      // ── Scroll-reveal helper ──
+      // Elements stay fully visible by default (no pre-hidden state).
+      // Only animate when they enter the viewport — safe fallback if JS is slow.
+      const reveal = (selector: string, trigger: string, stagger = 0.07) => {
+        ScrollTrigger.create({
+          trigger,
+          start: "top 88%",
+          once: true,
+          onEnter: () => {
+            gsap.fromTo(selector,
+              { opacity: 0, y: 18 },
+              { opacity: 1, y: 0, duration: 0.4, stagger, ease: "power2.out" }
+            )
+          },
+        })
+      }
 
-      // ── Curriculum cards stagger ──
-      gsap.from(".curr-card", {
-        opacity: 0, y: 18, duration: 0.38, stagger: 0.055, ease: "power2.out",
-        scrollTrigger: { trigger: "#curriculum", start: "top 82%", once: true },
-      })
-
-      // ── How it works steps ──
-      gsap.from(".how-step", {
-        opacity: 0, y: 22, duration: 0.45, stagger: 0.12, ease: "power2.out",
-        scrollTrigger: { trigger: "#how", start: "top 82%", once: true },
-      })
-
-      // ── CTA ──
-      gsap.from("#cta-box", {
-        opacity: 0, y: 24, duration: 0.5, ease: "power2.out",
-        scrollTrigger: { trigger: "#cta-box", start: "top 85%", once: true },
-      })
+      reveal(".feat-card",  "#features",   0.07)
+      reveal(".curr-card",  "#curriculum", 0.055)
+      reveal(".how-step",   "#how",        0.12)
+      reveal("#cta-box",    "#cta-box",    0)
     })
 
     return () => ctx.revert()
