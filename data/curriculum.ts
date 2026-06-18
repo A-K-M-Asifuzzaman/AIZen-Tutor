@@ -1,4 +1,5 @@
 export type { Lesson, Section } from "./types"
+import { PY_LESSONS }       from "./lessons/py"
 import { ML_LESSONS }       from "./lessons/ml"
 import { DL_LESSONS }       from "./lessons/deep-learning"
 import { NLP_LESSONS }      from "./lessons/nlp"
@@ -9,6 +10,7 @@ import { MLOPS_LESSONS }    from "./lessons/mlops"
 import { INTERVIEW_LESSONS } from "./lessons/interview"
 
 export const CATEGORIES = [
+  "Python",
   "Machine Learning",
   "Deep Learning",
   "NLP & Transformers",
@@ -20,6 +22,7 @@ export const CATEGORIES = [
 ]
 
 export const LESSONS = [
+  ...PY_LESSONS,
   ...ML_LESSONS,
   ...DL_LESSONS,
   ...NLP_LESSONS,
