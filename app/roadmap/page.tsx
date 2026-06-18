@@ -6,6 +6,7 @@ import { getCompleted, getCategoryProgress } from "@/lib/progress"
 import Nav from "@/components/Nav"
 
 const NODES = [
+  
   {
     id: "python",
     label: "Python & Math",

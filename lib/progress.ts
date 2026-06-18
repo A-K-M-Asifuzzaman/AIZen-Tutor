@@ -9,6 +9,7 @@ export const LEVELS = [
 ]
 
 export const BADGES = [
+  { id: "py",        category: "Python",   icon: "🤖", label: "Python Scholar"      },
   { id: "ml",        category: "Machine Learning",   icon: "🤖", label: "ML Scholar"      },
   { id: "dl",        category: "Deep Learning",       icon: "🧠", label: "Deep Thinker"    },
   { id: "nlp",       category: "NLP & Transformers",  icon: "💬", label: "Language Master" },

@@ -13,6 +13,7 @@ interface Props {
 }
 
 const DIFFICULTY: Record<string, { label: string; color: string }> = {
+  "Python":   { label: "Beginner",    color: "#34d399" },
   "Machine Learning":   { label: "Beginner",    color: "#34d399" },
   "Deep Learning":      { label: "Intermediate", color: "#fbbf24" },
   "NLP & Transformers": { label: "Intermediate", color: "#fbbf24" },
@@ -24,6 +25,7 @@ const DIFFICULTY: Record<string, { label: string; color: string }> = {
 }
 
 const READ_TIME: Record<string, string> = {
+  "Python":   "8 min",
   "Machine Learning":   "8 min",
   "Deep Learning":      "12 min",
   "NLP & Transformers": "10 min",

@@ -11,6 +11,7 @@ interface Props {
 }
 
 const CAT_COLOR: Record<string, string> = {
+  "Pthon":   "#a78bfa",
   "Machine Learning":   "#a78bfa",
   "Deep Learning":      "#60a5fa",
   "NLP & Transformers": "#22d3ee",
