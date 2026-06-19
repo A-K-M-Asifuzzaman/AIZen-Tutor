@@ -661,3 +661,4 @@ MIT — free to use, modify, and distribute.
 ---
 
 *Built with Next.js, Firebase, MongoDB, Tailwind CSS, GSAP, and Groq.*
+     
